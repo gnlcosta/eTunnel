@@ -1,0 +1,4 @@
+Essential
+=========
+
+Minimalistic PHP framework

@@ -1,0 +1,89 @@
+/*!
+ */
+
+body {
+  padding-top: 60px;
+  background: #ffffff;
+}
+
+/* message box */
+#message_box {
+    background-color: rgba(152, 6, 0, 0.8);
+    cursor: pointer;
+    height: 58px;
+    left: 0;
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 9999999;
+}
+#message_box, .dispoff {
+    display: none;
+}
+#message_box #alert {
+	cursor: pointer;
+	text-shadow: #000 0 0 0;
+	line-height: 30px;
+	width: 100%;
+	margin: auto;
+	color: #fff;
+	font-weight: normal;
+	font-style: normal;
+	text-decoration: none;
+	font-variant: normal;
+	font-size: 2.0em;
+	text-align: center;
+	display: block;
+	position: relative;
+	overflow: hidden;
+}
+
+/* Set the fixed height of the footer here */
+#footer {
+    /*position: fixed;*/
+    bottom: 0;
+    height: 23px;
+    background-color: #f5f5f5;
+    text-align: center;
+	border-top: 1px solid #e5e5e5;
+}
+
+#footer p {
+    margin: 0;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+#footer p a:link,
+#footer p a:visited {
+    color: #999999;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.bs-sidebar.affix-bottom .bs-sidenav, .bs-sidebar.affix .bs-sidenav {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+.bs-sidenav {
+    background-color: #F7F5FA;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    margin-top: 30px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    text-shadow: 0 1px 0 #FFFFFF;
+}
+
+.bs-sidebar .nav .nav > li > a {
+    font-size: 90%;
+    padding-bottom: 3px;
+    padding-left: 30px;
+    padding-top: 3px;
+}
+.bs-sidebar .nav > li > a {
+    color: #716B7A;
+    display: block;
+    padding: 5px 20px;
+}

@@ -1,6 +1,6 @@
 <?php
 $credits = array();
-$credits[] = array('en' => 1, 'title' => 'Essential', 'desc' => '<a href="http://www.xplico.org" title="Essemtial">Essential</a> is a minimalistic PHP framework to easly develop simple Web User Interface. You may use Essential under the terms of the MIT License.');
+$credits[] = array('en' => 1, 'title' => 'Essential', 'desc' => '<a href="https://github.com/xplico/Essential" title="Essemtial">Essential</a> is a minimalistic PHP framework to easly develop simple Web User Interface. You may use Essential under the terms of the MIT License.');
 $credits[] = array('en' => 0, 'title' => 'CakePHP', 'desc' => '<a href="http://cakephp.org/" title="CakePHP">CakePHP</a> makes building web applications simpler, faster and require less code. CakePHP is licensed under the MIT license which makes it perfect for use in commercial applications..');
 $credits[] = array('en' => 1, 'title' => 'Bootstrap', 'desc' => '<a href="http://getbootstrap.com/" title="Bootstrap">Bootstrap</a>: Sleek, intuitive, and powerful front-end framework for faster and easier web development. Licensed under the Apache License, Version 3.0.');
 $credits[] = array('en' => 1, 'title' => 'jQuery', 'desc' => '<a href="http://jquery.com/" title="jQuery">jQuery</a> is a fast and concise JavaScript Library that simplifies HTML document traversing, event handling, animating, and Ajax interactions for rapid web development.');

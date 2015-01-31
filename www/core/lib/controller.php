@@ -40,7 +40,7 @@ class AppController {
     }
 
     function Error() {
-        SesVarSet('esalert', _('ontent does not exist').' "'.$_GET['url'].'"');
+        SesVarSet('esalert', _('Content does not exist').' "'.$_GET['url'].'"');
         EsRedir();
     }
 }

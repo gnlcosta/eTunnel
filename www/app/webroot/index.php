@@ -28,29 +28,38 @@ if (isset($sessiondir)) {
     session_save_path($sessiondir);
 }
 else {
-    session_save_path($ROOT_DIR.'/app/tmp/sessions/');
+    session_save_path($ROOT_DIR.'/data/sessions/');
 }
 if (isset($es_session)) {
     session_name($es_session);
+}
+
+ini_set('session.cookie_lifetime', $session_lifetime);
+if (!isset($_SESSION['CREATED'])) {
+    $_SESSION['CREATED'] = time();
+} else if (time() - $_SESSION['CREATED'] > $session_lifetime) {
+    session_unset();
+    session_destroy();
+    $_SESSION['CREATED'] = time();
 }
 session_start();
 
 // custom template empty (the controllor can upfate it with EsTemplate function)
 $template = null;
 
-// disabilito la cache del browser
+// cache browser disabled
 session_cache_limiter('nocache');
 header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
 header('Pragma: no-cache'); // HTTP 1.0.
 header('Expires: 0'); // Proxies.
 
-// caricamento delle funzioni di libreria
+// loading library functions
 include '../../core/lib/essential_lib.php';
 
-// per la generazione della pagina
+// root app dir
 ViewVar('ROOT_APP', $ROOT_APP);
 
-// scelta della lingua
+// laguage
 if (SesVarCheck('locale')) {
 	$locale = SesVarGet('locale');
 }
@@ -92,12 +101,12 @@ $cntr_class = str_replace(' ', '', ucwords(str_replace('_', ' ', $controller)));
 $page_function = str_replace(' ', '', ucwords(str_replace('_', ' ', $page)));
 
 if (!class_exists($cntr_class)) {
-    SesVarSet('esalert', _('La Classe della pagina richiesta non esiste'));
+    SesVarSet('esalert', _("The Controller doesn't exist."));
     EsRedir();
 }
 $contr = new $cntr_class();
 if (!method_exists($contr, $page_function)) {
-    SesVarSet('esalert', _('La pagina richiesta non esiste'));
+    SesVarSet('esalert', _("The page doesn't exist"));
     $page = 'index';
     $page_function = 'Index';
 }
@@ -124,6 +133,7 @@ if (file_exists('../pages/'.$controller.'/'.$page.'.php'))
     $page_content = LoadPageContent('../pages/'.$controller.'/'.$page.'.php');
 else
     $page_content = '';
+unset($contr);
 
 // setup alert message
 if (SesVarCheck('esalert')) {

@@ -6,6 +6,10 @@ body {
   background: #ffffff;
 }
 
+a:focus {outline : none;}
+a img {outline : none;}
+img {border : 0;}
+
 /* message box */
 #message_box {
     background-color: rgba(152, 6, 0, 0.8);
@@ -47,6 +51,7 @@ body {
     background-color: #f5f5f5;
     text-align: center;
 	border-top: 1px solid #e5e5e5;
+    margin-top: 30px;
 }
 
 #footer p {
@@ -86,4 +91,32 @@ body {
     color: #716B7A;
     display: block;
     padding: 5px 20px;
+}
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 999px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+
+.unsel {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }

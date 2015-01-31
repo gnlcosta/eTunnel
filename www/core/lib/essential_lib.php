@@ -9,8 +9,21 @@
 
 $_view_vars = array();
 $_templ_vars = array();
+$esalert = null;
 
-if (isset($enable_dbg)) {
+// enable log
+function ErrorReport($errno, $errstr, $errfile, $errline) {
+    global $php_errors;
+    $php_errors[0] = "<b>Error Report:</b> [$errno] $errstr<br />";
+    $php_errors[0] .= " Error on line $errline in $errfile<br />";
+    $php_errors[0] .= "Stack:<br />";
+    $php_errors[1] = debug_backtrace();
+}
+
+if (isset($enable_dbg) && $enable_dbg) {
+	if (function_exists('set_error_handler')) {
+	    set_error_handler("ErrorReport");
+    }
     ini_set('display_errors', $enable_dbg);
     error_reporting(E_ALL);
 }
@@ -71,10 +84,22 @@ function ViewVar($name, $value) {
     $_view_vars[$name] = $value;
 }
 
+function ViewVarUnset($name) {
+    global $_view_vars;
+    
+    unset($_view_vars[$name]);
+}
+
 function TemplVar($name, $value) {
     global $_templ_vars;
     
     $_templ_vars[$name] = $value;
+}
+
+function TemplVarUnset($name) {
+    global $_templ_vars;
+    
+    unset($_templ_vars[$name]);
 }
 
 function ControllerPage() {
@@ -185,7 +210,7 @@ function EsTemplate($tmp = null) {
 }
 
 function EsSanitize($var) {
-    $subt = array('<', '>', '"');
+    $subt = array('<', '>', '"', "'");
     if (is_array($var)) {
         $ret = array();
         foreach($var as $key => $elem) {
@@ -206,7 +231,17 @@ function RootDir() {
 
 function DataDir() {
     global $ROOT_DIR;
+    GLOBAL $app_dir;
+    if (isset($app_dir))
+        return $app_dir;
     return $ROOT_DIR.'/data/';
+}
+
+function DbDir() {
+    global $db_dir;
+    if (isset($db_dir))
+        return $db_dir.'/';
+    return DataDir();
 }
 
 function RootApp() {

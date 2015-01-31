@@ -10,6 +10,16 @@ It is the client that start the ssh connections to the server
 ## Server
 It is the side where configure the number of the ssh tunnels and where to start the tunnel, this for every node
 
+# Client side
+Generate the TGZ files to install using:
+  make
+
+# Server side
+Copy the directory www_server into the server
+
+# Dependencies
+  - ccrypt
+
 # License
 GNU AFFERO GENERAL PUBLIC LICENSE
 This program is free software: you can redistribute it and/or modify

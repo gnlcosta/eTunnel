@@ -11,3 +11,5 @@ $session_lifetime = 7200; //in secconds
 $default_controller = 'main';
 
 $prj_name = 'eTunnel';
+$log_dir = '/tmp/log';
+$log_max_lines = 10000;

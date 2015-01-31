@@ -1,10 +1,3 @@
-<!--
- * Essential : Minimalistic PHP Framework
- * Copyright 2013-2013, Gianluca Costa (http://www.xplico.org)
- *
- * Licensed under The MIT License
- * Redistributions of files must retain the above copyright notice.
--->
 <!DOCTYPE html>
 <html><head>
 	<meta http-equiv="content-type" content="text/html;">
@@ -32,7 +25,7 @@
     
     <!-- Le javascript
     ================================================== -->
-    <script src="<?php echo $ROOT_APP; ?>js/jquery-1.10.2.min.js"></script>
+    <script src="<?php echo $ROOT_APP; ?>js/jquery-1.11.2.min.js"></script>
     <script src="<?php echo $ROOT_APP; ?>js/bootstrap.min.js"></script>
     <script src="<?php echo $ROOT_APP; ?>js/jquery.qtip.min.js"></script>
     <script src="<?php echo $ROOT_APP; ?>js/base_tmpl.js"></script>  
@@ -115,12 +108,12 @@
     
     <div id="footer">
         <div class="container">
-            <p>&copy; 2014 <a href="http://www.evolka.it">Evolka</a>. GNU Affero General Public License.</p>
+            <p>&copy; 2015 <a href="http://www.evolka.it">Evolka</a>. GNU Affero General Public License.</p>
         </div>
     </div>
     <?php if (!empty($php_errors)): ?>
     <div class="php_errors">
-        <?php echo $php_errors; ?>
+        <?php if (is_array($php_errors)) print_r($php_errors); else echo $php_errors; ?>
     </div>
     <?php endif; ?>
 </body></html>

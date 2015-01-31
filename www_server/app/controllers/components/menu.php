@@ -8,7 +8,19 @@ class Menu {
             return array($add);
     }
     
-    function Right() {
-        return array(array('help' => 'Credits', 'link' => RootApp().'main/credits', 'title' => 'Credits'));
+    function Right($add = null) {
+        if ($add == null) {
+            return array(array('help' => 'Logout', 'link' => RootApp().'user/logout', 'title' => 'Logout'),
+                array('help' => 'Lista utenti', 'link' => RootApp().'user/index', 'title' => 'Utenti'),
+                array('help' => 'Credits', 'link' => RootApp().'main/credits', 'title' => 'Credits')
+            );
+        }
+        else {
+            return array(array('help' => 'Logout', 'link' => RootApp().'user/logout', 'title' => 'Logout'),
+                array('help' => 'Lista utenti', 'link' => RootApp().'user/index', 'title' => 'Utenti'),
+                array('help' => 'Credits', 'link' => RootApp().'main/credits', 'title' => 'Credits'),
+                $add
+            );
+        }
     }
 }

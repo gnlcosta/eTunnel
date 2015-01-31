@@ -1,8 +1,14 @@
 <div class="container">
+  <div class="col-md-6  col-md-offset-3 col-xs-12">
     <div class="jumbotron">
-        <h1>Essential <small>minimalistic PHP framework</small></h1>
-        <p>Model-View-Control "framework" with not many features, but easy to use.</p>
-        <p>Essential uses, as default template, Bootstrap 3.</p>
-        <a href="https://github.com/xplico/Essential" class="btn btn-default btn-warning btn-lg">Download</a>
+    <div class="container">
+        <h1>eTunnel <small><?php echo $appl['version']; ?></small></h1>
+        <?php if ($cfg == FALSE) :?>
+        <div class="alert alert-danger" role="alert">File di configurazione assente o incompleto</div>
+        <?php else :?>
+        <a href="<?php echo EsNewUrl('main', 'nodes_list'); ?>" class="btn btn-default btn-block btn-lg">Lista Nodi</a>
+        <?php endif; ?>
     </div>
+    </div>
+  </div>
 </div> <!-- /container -->

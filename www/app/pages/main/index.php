@@ -36,3 +36,30 @@
     </div>
     </div>
 </div> <!-- /container -->
+
+<?php if (!$cfg): ?>
+<script type="text/javascript">
+var instatusplc;
+
+function Check(data) {
+    if (data != 0) {
+        location.reload();
+        return;
+    }
+}
+
+function Status() {
+    $.ajax({
+        url: "<?php echo EsNewUrl('main', 'status'); ?>",
+        context: document.body
+    }).done(Check)
+    .always(function() {
+        instatusplc = setTimeout(Status, 1500);
+	});
+}
+
+$(function() {
+	Status();
+});
+</script>
+<?php endif; ?>

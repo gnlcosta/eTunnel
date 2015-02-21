@@ -76,6 +76,20 @@ class Main extends AppController {
         ViewVar('appl', $appl);
 	}
 
+    function Status() {
+        EsTemplate('none');
+        if (file_exists($this->cfg_file)) {
+            $str = file_get_contents($this->cfg_file);
+            $cfg = json_decode($str, true);
+            if (isset($cfg['idn'])) {
+                ViewVar('data', 1);
+                return ;
+            }
+        }
+        ViewVar('data', 0);
+    }
+    
+
     function Credits() {
         TemplVar('menu_right_active', 0);
     }

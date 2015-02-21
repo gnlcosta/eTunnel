@@ -83,6 +83,20 @@ class TunnelThread (threading.Thread):
         print("End Tunnel " + self.name)
 
 
+def FireWall(enable):
+    if enable == True:
+        os.system('iptables -P INPUT DROP')
+        os.system('iptables -P FORWARD DROP')
+        os.system('iptables -P OUTPUT ACCEPT')
+        # Accept on localhost
+        os.system('iptables -A INPUT -i lo -j ACCEPT')
+        os.system('iptables -A OUTPUT -o lo -j ACCEPT')
+    else:
+        os.system('iptables -P INPUT ACCEPT')
+        os.system('iptables -P FORWARD ACCEPT')
+        os.system('iptables -P OUTPUT ACCEPT')
+
+
 def SerialNumber(cfg_data):
     macbin = get_mac()
     sn = ''.join('%02X' % ((macbin >> 8*i) & 0xff) for i in reversed(range(6)))

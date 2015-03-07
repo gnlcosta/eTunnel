@@ -122,9 +122,9 @@ def ServerRegistration(cfg_data, appl):
     enckey = ''
     try:
         if cfg_data['scheme'] == 'http':
-            conn = http.client.HTTPConnection(cfg_data['host'])
+            conn = http.client.HTTPConnection(cfg_data['host'], timeout=9)
         else:
-            conn = http.client.HTTPSConnection(cfg_data['host'])
+            conn = http.client.HTTPSConnection(cfg_data['host'], timeout=9)
         conn.request('GET', cfg_data['path']+'?sn='+sn+'&ck='+ck, headers={'User-Agent': appl['name']+'/'+appl['version']})
         resp = conn.getresponse()
         body = resp.read()
@@ -240,9 +240,9 @@ def main():
         try:
             print('Server CMD')
             if cfg_data['scheme'] == 'http':
-                conn = http.client.HTTPConnection(cfg_data['host'])
+                conn = http.client.HTTPConnection(cfg_data['host'], timeout=9)
             else:
-                conn = http.client.HTTPSConnection(cfg_data['host'])
+                conn = http.client.HTTPSConnection(cfg_data['host'], timeout=9)
             conn.request('GET', cfg_data['path']+'?idn='+cfg_data['idn']+'&st='+tunnel_state, headers={'User-Agent': appl['name']+'/'+appl['version']})
             resp = conn.getresponse()
             body = resp.read()

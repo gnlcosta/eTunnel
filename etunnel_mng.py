@@ -25,6 +25,7 @@ import json
 import http.client
 import hashlib
 from uuid import getnode as get_mac
+import logging
 
 tmp_dir = '/tmp/'
 config_dir = '/data/embed/etunnel/'
@@ -38,26 +39,6 @@ threadLock = threading.Lock()
 stop_tunnel = True
 threads = []
 tunnel_state = 'off'
-
-class myThread (threading.Thread):
-    def __init__(self, threadID, name, counter):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.counter = counter
-    def run(self):
-        print("Starting " + self.name)
-        print_time(self.name, self.counter, 3)
-        
-def print_time(threadName, delay, counter):
-    while counter:
-        # Get lock to synchronize threads
-        threadLock.acquire()
-        time.sleep(delay)
-        # Free lock to release next thread
-        threadLock.release()
-        print("%s: %s" % (threadName, time.ctime(time.time())))
-        counter -= 1
         
 class TunnelThread (threading.Thread):
     def __init__(self, ind, name, sport, dsthost, dstport, user, password, server, server_port):
@@ -76,7 +57,7 @@ class TunnelThread (threading.Thread):
         global stop_tunnel
         print("Starting Tunnel " + self.name)
         while stop_tunnel == False:
-            os.system('sshpass -p '+self.password+' ssh -R '+self.sport+':'+self.dsthost+':'+self.dstport+' '+self.user+'@'+self.server+' -p '+self.server_port+' -N -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=15 -o ServerAliveCountMax=3')
+            os.system('sshpass -p '+self.password+' ssh -R '+self.sport+':'+self.dsthost+':'+self.dstport+' '+self.user+'@'+self.server+' -p '+self.server_port+' -N -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=10 -o ServerAliveCountMax=3')
             if stop_tunnel == False:
                 print("Tunnel "+self.name+" uscito anticipatamente")
             time.sleep(1)
@@ -84,14 +65,45 @@ class TunnelThread (threading.Thread):
 
 
 def FireWall(enable):
+    # eth
+    i = 0
+    eth = 'none'
+    wlan = 'none'
+    for line in open('/proc/net/dev', 'r'):
+        i += 1
+        if i < 3:
+            continue
+        data = line.split()
+        int = data[0].split(':')
+        if int[0] == 'lo':
+            continue
+        if int[0] == 'wlan0':
+            wlan = int[0]
+            continue
+        if eth == 'none':
+            eth = int[0]
+    
     if enable == True:
-        os.system('iptables -P INPUT DROP')
+        os.system('iptables -F')
+        os.system('iptables -X')
+        os.system('iptables -P INPUT ACCEPT')
         os.system('iptables -P FORWARD DROP')
         os.system('iptables -P OUTPUT ACCEPT')
-        # Accept on localhost
+        os.system('iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT')
+        # accept on localhost
         os.system('iptables -A INPUT -i lo -j ACCEPT')
         os.system('iptables -A OUTPUT -o lo -j ACCEPT')
+        os.system('iptables -A INPUT -i '+eth+' -j ACCEPT')
+        os.system('iptables -A OUTPUT -o '+eth+' -j ACCEPT')
+        # drop all other incoming connections
+        os.system('iptables -A INPUT -j DROP')
     else:
+        os.system('iptables -F')
+        os.system('iptables -t nat -F')
+        os.system('iptables -t mangle -F')
+        os.system('iptables -X')
+        os.system('iptables -t nat -X')
+        os.system('iptables -t mangle -X')
         os.system('iptables -P INPUT ACCEPT')
         os.system('iptables -P FORWARD ACCEPT')
         os.system('iptables -P OUTPUT ACCEPT')
@@ -199,6 +211,8 @@ def MngAction(cmd, cfg_data):
     
 def main():
     global tunnel_state
+    logging.basicConfig(filename='/data/embed/etunnel/etunnel.log', format='%(asctime)s %(levelname)s:%(message)s', level=logging.WARNING)
+    
     # timeout errori in connessione
     error_cnt = 0
     # dati applicazione
@@ -206,10 +220,12 @@ def main():
     appl = json.load(f)
     f.close()
     cfg_data = None
-    next_call = 5
+    timeout_stop = -1
+    firewall = False
     
     # registrazione al server... se non gia' eseguita
     while True:
+        next_call = 5 # valore di default (in caso di errore in connesisone...)
         idn = False
         new_act = False
         while idn == False:
@@ -259,20 +275,37 @@ def main():
                 new_act = True
             if 'next_call' in action:
                 next_call = action['next_call']
+            if firewall == False:
+                firewall = True
+                FireWall(True)
         except Exception as e:
             error_cnt += 1
+            logging.debug('Connection Error: %s', e)
+            logging.debug(' Con: %s %s', resp.status, resp.reason)
             print(Exception('Connection Error: %s' % e))
         finally:
             conn.close()
             
         if new_act:
             MngAction(action, cfg_data)
+            if 'params' in action and 'timeout' in action['params']:
+                timeout_stop = time.time() + action['params']['timeout']
+            else:
+                timeout_stop = -1
         elif error_cnt >= 5:
             print('Rinegoziazione')
             ForseRegist(cfg_data)
-        
-        time.sleep(next_call)
-    
+            firewall = False
+            FireWall(False)
+
+        i = 0
+        while i < next_call:
+            # chiusura per timeout
+            if timeout_stop != -1 and timeout_stop < time.time():
+                MngAction({'action': 'stop'}, cfg_data)
+                timeout_stop = -1
+            time.sleep(1)
+            i += 1
     
 if __name__ == '__main__':
     main()

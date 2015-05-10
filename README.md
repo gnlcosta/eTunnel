@@ -15,7 +15,8 @@ Generate the TGZ files to install using:
   make
 
 # Server side
-Copy the directory www_server into the server
+Generate the TGZ files to install using:
+  make srv
 
 # Dependencies
   - ccrypt

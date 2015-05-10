@@ -35,6 +35,8 @@ if (isset($es_session)) {
 }
 
 ini_set('session.cookie_lifetime', $session_lifetime);
+ini_set('session.gc_maxlifetime', $session_lifetime);
+
 if (!isset($_SESSION['CREATED'])) {
     $_SESSION['CREATED'] = time();
 } else if (time() - $_SESSION['CREATED'] > $session_lifetime) {

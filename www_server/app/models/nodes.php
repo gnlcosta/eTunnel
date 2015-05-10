@@ -29,11 +29,15 @@ class Nodes {
             idn INTEGER NOT NULL,
             enckey TEXT NOT NULL,
             phone TEXT,
-            ip TEXT,
-            lastmsg INTEGER,
-            tunnel BOOLEAN DEFAULT 0,
-            freq INTEGER DEFAULT 5,
+            sms_updown BOOLEAN DEFAULT 0,
+            auto_start BOOLEAN DEFAULT 0,
+            disable BOOLEAN DEFAULT 0,
             start_utype INTEGER DEFAULT -1,
+            freq INTEGER DEFAULT 5,
+            ip TEXT DEFAULT '---',
+            lastmsg INTEGER DEFAULT 0,
+            tunnelon BOOLEAN DEFAULT 0,
+            sms_cnt INTEGER DEFAULT 0,
             started INTEGER
         )");
         
@@ -76,12 +80,23 @@ class Nodes {
     function Tunnels($node_id, $utype) {
         $result = $this->db->query('SELECT * FROM tunnels WHERE node_id='.$node_id.' AND utype >= '.$utype.';');
         if ($result !== FALSE) {
-            $nodes = array();
+            $tuns = array();
             while ($row = $result->fetchArray()) {
-                $nodes[] = $row;
+                $tuns[] = $row;
             }
             $result->finalize();
-            return $nodes;
+            return $tuns;
+        }
+        
+        return FALSE;
+    }
+    
+    function Tunnel($tun_id, $utype) {
+        $result = $this->db->query('SELECT * FROM tunnels WHERE id='.$tun_id.' AND utype >= '.$utype.';');
+        if ($result !== FALSE) {
+            $tun = $result->fetchArray();
+            $result->finalize();
+            return $tun;
         }
         
         return FALSE;
@@ -91,23 +106,46 @@ class Nodes {
         $this->db->exec("INSERT INTO tunnels (node_id, name, sport, dhost, dport) VALUES ('".$node_id."', '".$name."', '".$sport."', '".$dhost."', '".$dport."');");
     }
 
+    function TunnelUpdate($tun_id, $node_id, $name, $sport, $dhost, $dport) {
+        $this->db->exec("UPDATE tunnels SET name='".$name."', sport='".$sport."', dhost='".$dhost."', dport='".$dport."' WHERE id=".$tun_id." AND node_id=".$node_id.";");
+    }
+
     function TunnelRemove($id) {
         $this->db->query('DELETE FROM tunnels WHERE id = '.$id);
+    }
+
+    function Node($id) {
+        $result = $this->db->query('SELECT * FROM nodes WHERE id='.$id.';');
+        if ($result !== FALSE) {
+            $row = $result->fetchArray();
+            $result->finalize();
+            return $row;
+        }
+        else
+            return FALSE;
     }
     
     function Add($name, $descrip, $sn, $idn, $enckey, $phone) {
         $this->db->exec("INSERT INTO nodes (name, descrip, sn, idn, enckey, phone) VALUES ('".$name."', '".$descrip."', '".$sn."', '".$idn."', '".$enckey."', '".$phone."');");
     }
 
-    function Update($id, $name, $descrip, $sn, $idn, $enckey, $phone) {
-        $this->db->exec("UPDATE nodes SET name='".$name."',  descrip='".$descrip."', sn='".$sn."', idn='".$idn."', enckey='".$enckey."', phone='".$phone."' WHERE id=".$id.";");        
+    function UpdateEncKey($id, $enckey) {
+        $this->db->exec("UPDATE nodes SET enckey='".$enckey."' WHERE id=".$id.";");        
     }
 
-    function UpdateStatus($id, $ip, $tunnel, $lastmsg, $started = null) {
+    function Update($id, $name, $descrip, $phone, $sms_updown, $auto_start, $disable) {
+        $this->db->exec("UPDATE nodes SET name='".$name."',  descrip='".$descrip."', phone='".$phone."', sms_updown='".$sms_updown."', auto_start='".$auto_start."', disable='".$disable."' WHERE id=".$id.";");
+    }
+
+    function UpdateStatus($id, $ip, $on, $lastmsg, $started = null) {
         if ($started == null)
-            $this->db->exec("UPDATE nodes SET ip='".$ip."', tunnel='".$tunnel."', lastmsg='".$lastmsg."' WHERE id=".$id.";");
+            $this->db->exec("UPDATE nodes SET ip='".$ip."', tunnelon='".$on."', lastmsg='".$lastmsg."' WHERE id=".$id.";");
         else
-            $this->db->exec("UPDATE nodes SET ip='".$ip."', tunnel='".$tunnel."', lastmsg='".$lastmsg."', started='".$started."' WHERE id=".$id.";");
+            $this->db->exec("UPDATE nodes SET ip='".$ip."', tunnelon='".$on."', lastmsg='".$lastmsg."', started='".$started."' WHERE id=".$id.";");
+    }
+    
+    function UpdateTunnelSt($id, $on) {
+        $this->db->exec("UPDATE nodes SET tunnelon='".$on."' WHERE id=".$id.";");
     }
 
     function StartStop($id, $start) {

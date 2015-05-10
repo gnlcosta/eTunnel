@@ -35,9 +35,9 @@ class User extends AppController {
     }
     
     function Login() {
-        global $log_dir, $app_dir;
-        @mkdir($log_dir);
-        @mkdir($app_dir);
+        global $log_dir;
+        if (!file_exists($log_dir))
+            @mkdir($log_dir);
         SesVarSet('kbtouch', FALSE);
         TemplVar('title', 'Login');
         if ($this->usr_type == -1) {

@@ -11,6 +11,7 @@ $title_page = 'eTunnel';
 class Main extends AppController {
     public $models = array('nodes');
     public $components = array('Menu');
+    private $utype;
     
     private function RegNodes() {
         $reg_json = DataDir().'/reg.json';
@@ -44,6 +45,18 @@ class Main extends AppController {
             $_POST['phone'] = '';
         if (!isset($_POST['descrip']))
             $_POST['descrip'] = '';
+        if (!isset($_POST['sms_updown']))
+            $_POST['sms_updown'] = 0;
+        else
+            $_POST['sms_updown'] = intval($_POST['sms_updown']);
+        if (!isset($_POST['auto_start']))
+            $_POST['auto_start'] = 0;
+        else
+            $_POST['auto_start'] = intval($_POST['auto_start']);
+        if (!isset($_POST['disable']))
+            $_POST['disable'] = 0;
+        else
+            $_POST['disable'] = intval($_POST['disable']);
         
         return $check;
     }
@@ -84,11 +97,12 @@ class Main extends AppController {
         if (count($reg) != 0) {
             TemplVar('menu_left', $this->Menu->Left(array('help' => 'Nodi registrati', 'link' => RootApp().'main/regist_list', 'title' => 'Nuovi nodi')));
         }
+        $this->utype = SesVarGet('user_type');
     }
     
 	function Index() {
         TemplVar('menu_left_active', -1);
-        $str = file_get_contents(RootDir().'/../../app.json');
+        $str = file_get_contents(DataDir().'/app.json');
         $appl = json_decode($str, true);
         $cfg = FALSE;
         $ssh_cfg = DataDir().'/server.json';
@@ -104,35 +118,50 @@ class Main extends AppController {
 	}
 
     function Start() {
-        if (!SesVarCheck('node_id'))
-            EsRedir('main', 'nodes_list');
-        $node_id = SesVarGet('node_id');
+        EsTemplate('esmsg');
+        if (!SesVarCheck('node_id') && !isset($_GET['id'])) {
+            EsMessage(_("Azione non valida"));
+            return;
+        }
+        if (isset($_GET['id']))
+            $node_id = $_GET['id'];
+        else
+            $node_id = SesVarGet('node_id');
         $this->nodes->StartStop($node_id, SesVarGet('user_type'));
         EsMessage(_("Tunnel in avvio"));
-        EsRedir('main', 'nodes_list');
     }
 
     function Stop() {
-        if (!SesVarCheck('node_id'))
-            EsRedir('main', 'nodes_list');
-        $node_id = SesVarGet('node_id');
+        EsTemplate('esmsg');
+        if (!SesVarCheck('node_id') && !isset($_GET['id'])) {
+            EsMessage(_("Azione non valida"));
+            return;
+        }
+        if (isset($_GET['id']))
+            $node_id = $_GET['id'];
+        else
+            $node_id = SesVarGet('node_id');
         $this->nodes->StartStop($node_id, -1);
         EsMessage(_("Tunnel in arresto"));
-        EsRedir('main', 'nodes_list');
     }
 
     function Tunnels() {
-        if (!isset($_GET['id'])) 
+        if (!isset($_GET['id']) || $this->utype == 3) { 
+            EsMessage(_("Operazione non consentita"));
             EsRedir('main', 'nodes_list');
+        }
         $id = $_GET['id'];
         $tunnels = $this->nodes->Tunnels($id, SesVarGet('user_type'));
         SesVarSet('node_id', $id);
+        ViewVar('node_id', $id);
         ViewVar('tunnels', $tunnels);
     }
 
     function TunnelAdd() {
-        if (!SesVarCheck('node_id'))
+        if (!SesVarCheck('node_id') || $this->utype > 1) {
+            EsMessage(_("Operazione non consentita"));
             EsRedir('main', 'nodes_list');
+        }
         $node_id = SesVarGet('node_id');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_POST = EsSanitize($_POST);
@@ -142,11 +171,37 @@ class Main extends AppController {
                 EsRedir('main', 'tunnels', 'id='.$node_id);
             }
         }
+        ViewVar('node_id', $node_id);
+    }
+
+    function TunnelEdit() {
+        if (!SesVarCheck('node_id') || $this->utype > 1) {
+            EsMessage(_("Operazione non consentita"));
+            EsRedir('main', 'nodes_list');
+        }
+        $node_id = SesVarGet('node_id');
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && SesVarCheck('tun_id')) {
+            $_POST = EsSanitize($_POST);
+            if ($this->TunneCheck() == TRUE) {
+                $this->nodes->TunnelUpdate(SesVarGet('tun_id'), $node_id, $_POST['name'], $_POST['sport'], $_POST['dhost'], $_POST['dport']);
+                EsMessage(_("Tunnel modificato"));
+                EsRedir('main', 'tunnels', 'id='.$node_id);
+            }
+        }
+        if (!isset($_GET['id']))
+            EsRedir('main', 'nodes_list');
+        $id = $_GET['id'];
+        SesVarSet('tun_id', $id);
+        $tunnel = $this->nodes->Tunnel($id, SesVarGet('user_type'));
+        ViewVar('node_id', $node_id);
+        ViewVar('tunnel', $tunnel);
     }
     
     function TunnelRemove() {
-        if (!SesVarCheck('node_id') || !isset($_GET['id']))
+        if (!SesVarCheck('node_id') || !isset($_GET['id']) || $this->utype > 1) {
+            EsMessage(_("Operazione non consentita"));
             EsRedir('main', 'nodes_list');
+        }
         $node_id = SesVarGet('node_id');
         $id = $_GET['id'];
         $this->nodes->TunnelRemove($id);
@@ -156,9 +211,64 @@ class Main extends AppController {
     
     function NodesList() {
         $nodes = $this->nodes->Get(SesVarGet('user_id'), SesVarGet('user_type'));
+        foreach ($nodes as &$node) {
+            if ($node['lastmsg'] < time()-2*$node['freq'] && $node['tunnelon']) {
+                $node['tunnelon'] = 0;
+                $this->nodes->UpdateTunnelSt($node['id'], 0);
+            }
+        }
+        //$this->nodes->Add('Menego', 'Test', 'mio', 'ooo', '', '');
+        SesVarUnset('node_id');
         ViewVar('nodes', $nodes);
     }
     
+    function NodesListUpdate() {
+        $nodes = $this->nodes->Get(SesVarGet('user_id'), SesVarGet('user_type'));
+        $data = array();
+        foreach ($nodes as $node) {
+            if ($node['lastmsg'] < time()-2*$node['freq'] && $node['tunnelon']) {
+                $node['tunnelon'] = 0;
+                $this->nodes->UpdateTunnelSt($node['id'], 0);
+            }
+            $nd = array('id' => $node['id'], 'lmsg' => date("Y-m-d", $node['lastmsg']), 'ip' => $node['ip'], 'st' => 1, 'tunnel' => $node['tunnelon']);
+            if ($node['lastmsg'] < time()-2*$node['freq'])
+                $nd['st'] = 0;
+            if ((!$node['tunnelon'] && $node['start_utype'] != -1) || ($node['tunnelon'] && $node['start_utype'] == -1))
+                $nd['tunnel'] = 2;
+            $data[] = $nd;
+        }
+        if ($nodes == FALSE)
+            $data = array('e' => 1);
+        EsTemplate('none');
+        ViewVar('data', json_encode($data));
+    }
+    
+    function NodeSettings() {
+        if ($this->utype > 1) {
+            EsMessage(_("Operazione non consentita"));
+            EsRedir('main', 'nodes_list');
+        }
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && SesVarCheck('node_id')) {
+            $_POST = EsSanitize($_POST);
+            $id = SesVarGet('node_id');
+            $data = $this->NodeCheck($_POST);
+            if ($data == FALSE) {
+                EsRedir('main', 'node_settings', 'id='.$id);
+            }
+            $this->nodes->Update($id, $_POST['name'], $_POST['descrip'], $_POST['phone'], $_POST['sms_updown'], $_POST['auto_start'], $_POST['disable']);
+            EsMessage(_("Impostazioni modificare"));
+            EsRedir('main', 'nodes_list');
+        }
+        else if (!isset($_GET['id'])) {
+            EsMessage(_("Operazione non consentita"));
+            EsRedir('main', 'nodes_list');
+        }
+        $id = $_GET['id'];
+        SesVarSet('node_id', $id);
+        $node = $this->nodes->Node($id);
+        ViewVar('node', $node);
+    }
+        
     function RegistList() {
         $reg = $this->RegNodes();
         $nodes = array();
@@ -213,7 +323,7 @@ class Main extends AppController {
                 $st = 0;
             // verifica esistenza nel DB
             $node = $this->nodes->GetIdn($idn);
-            if ($node == FALSE) {                
+            if ($node == FALSE || $node['disable']) {                
                 sleep(5); // per evitare che lo stesso client sovracarichi il sistema
                 die();
             }
@@ -221,7 +331,13 @@ class Main extends AppController {
                 // json con i dati per la messaggistica cifrata
                 $resp = array('version' => "1.0", 'next_call' => $node['freq']);
                 $utype = $node['start_utype'];
-                if ($utype != -1 && $st == 0) {
+                $timenow = time();
+                // auto start
+                if ($node['auto_start'] && $utype == -1 && $node['lastmsg']+180 < $timenow) { // 3 min di silenzio allora riavvua il tunnel automatico
+                    $utype = 3;
+                    $this->nodes->StartStop($node['id'], $utype);
+                }
+                if ($utype != -1 && $st == 0 && $node['tunnelon'] == 0) {
                     $ssh_cfg = DataDir().'/server.json';
                     if (file_exists($ssh_cfg)) {
                         $str = file_get_contents($ssh_cfg);
@@ -234,14 +350,18 @@ class Main extends AppController {
                     foreach ($tunnels as $tunnel) {
                         $resp['tunnels'][] = array('name' => $tunnel['name'], 'sport' => $tunnel['sport'], 'dsthost' => $tunnel['dhost'], 'dstport' => $tunnel['dport']);
                     }
-                    $this->nodes->UpdateStatus($node['id'], $_SERVER['REMOTE_ADDR'], $st, time(), time());
+                    $this->nodes->UpdateStatus($node['id'], $_SERVER['REMOTE_ADDR'], $st, $timenow, $timenow);
+                    $resp['next_call'] = 2; // notifica veloce
                 }
-                elseif ($st == 1 && $utype == -1) {
+                elseif (($st == 1 && $utype == -1) || ($utype != -1 && $st == 0)) {
                     $resp['action'] = 'stop';
-                    $this->nodes->UpdateStatus($node['id'], $_SERVER['REMOTE_ADDR'], $st, time());
+                    if ($utype != -1)
+                        $this->nodes->StartStop($node['id'], -1); // stop
+                    $this->nodes->UpdateStatus($node['id'], $_SERVER['REMOTE_ADDR'], $st, $timenow);
+                    $resp['next_call'] = 2; // notifica veloce
                 }
                 else {
-                    $this->nodes->UpdateStatus($node['id'], $_SERVER['REMOTE_ADDR'], $st, time());
+                    $this->nodes->UpdateStatus($node['id'], $_SERVER['REMOTE_ADDR'], $st, $timenow);
                 }
                 $str = json_encode($resp);
                 $resp_file = '/tmp/resp_'.$idn.'.json';
@@ -280,7 +400,6 @@ class Main extends AppController {
                 file_put_contents(DataDir().'/reg.json', $str);
             }
             else { // invio chiave di cifratura e id nodo
-                $this->nodes->UpdateStatus($node['id'], $_SERVER['REMOTE_ADDR'], $st, time());
                 if (isset($reg[$sn])) {
                     unset($reg[$sn]);
                     $str = json_encode($reg);
@@ -288,7 +407,7 @@ class Main extends AppController {
                 }
                 else { // cambio chiavi
                     $enckey = md5($node['idn'].time());
-                    $this->nodes->Update($node['id'], $node['name'], $node['descrip'], $node['sn'], $node['idn'], $enckey, $node['phone']);
+                    $this->nodes->UpdateEncKey($node['id'], $enckey);
                     $node = $this->nodes->GetSn($sn);
                 }
                 // json con i dati per la messaggistica cifrata

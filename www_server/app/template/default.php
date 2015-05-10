@@ -10,6 +10,7 @@
     <!-- Le styles -->
     <link href="<?php echo $ROOT_APP; ?>css/bootstrap.min.css" rel="stylesheet">
     <link href="<?php echo $ROOT_APP; ?>css/font-awesome.min.css" type="text/css" media="all" rel="stylesheet" />
+    <link href="<?php echo $ROOT_APP; ?>css/jquery.qtip.min.css" type="text/css" media="all" rel="stylesheet" />
     <link href="<?php echo $ROOT_APP; ?>css/base_tmpl.css" type="text/css" media="all" rel="stylesheet" />
     <?php
         if (isset($custom_css)) {

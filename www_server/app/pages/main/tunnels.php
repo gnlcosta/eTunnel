@@ -15,7 +15,7 @@
                 <td class="vert-align"><?php echo $tunnel['dhost']; ?></td>
                 <td class="vert-align"><?php echo $tunnel['dport']; ?></td>
                 <td>
-                    <a href="<?php echo EsNewUrl('main', 'tunnel_edit'); ?>" class="btn btn-default">
+                    <a href="<?php echo EsNewUrl('main', 'tunnel_edit', 'id='.$tunnel['id']); ?>" class="btn btn-default">
                         <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                     </a>
                     <a href="<?php echo EsNewUrl('main', 'tunnel_remove', 'id='.$tunnel['id']); ?>" class="btn btn-danger">
@@ -26,16 +26,18 @@
             <?php endforeach; ?>
         </table>
         <div class="form-group">
-            <div class="col-sm-6">
-                <a href="<?php echo EsNewUrl('main', 'start'); ?>" class="btn btn-block btn-info btn-lg">Avvia Tunnel</a>
-            </div>
-            <div class="col-sm-6">
-                <a href="<?php echo EsNewUrl('main', 'stop'); ?>" class="btn btn-block btn-info btn-lg">Stop Tunnel</a>
+            <div class="col-sm-12">
+                <a href="<?php echo EsNewUrl('main', 'tunnel_add'); ?>" class="btn btn-block btn-info btn-lg">Aggiungi Tunnel</a>
             </div>
         </div>
         <div class="form-group">
             <div class="col-sm-12">
-                <a href="<?php echo EsNewUrl('main', 'tunnel_add'); ?>" class="btn btn-block btn-info btn-lg">Aggiungi Tunnel</a>
+                <a href="<?php echo EsNewUrl('main', 'node_settings', 'id='.$node_id); ?>" class="btn btn-block btn-default btn-lg">Impostazioni</a>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-12">
+                <a href="<?php echo EsNewUrl('main', 'nodes_list'); ?>" class="btn btn-block btn-warning btn-lg">Annulla</a>
             </div>
         </div>
     </div>

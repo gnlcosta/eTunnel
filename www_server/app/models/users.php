@@ -94,7 +94,7 @@ class Users {
     }
     
     function Permanent($id) {
-        if ($id > 6)
+        if ($id > 5)
             return FALSE;
         return TRUE;
     }

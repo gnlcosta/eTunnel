@@ -69,19 +69,18 @@ def FireWall(enable):
     i = 0
     eth = 'none'
     wlan = 'none'
-    for line in open('/proc/net/dev', 'r'):
+    os.system("nmcli d > /tmp/et_net_dev");
+    for line in open('/tmp/et_net_dev', 'r'):
         i += 1
-        if i < 3:
+        if i < 2:
             continue
         data = line.split()
-        int = data[0].split(':')
-        if int[0] == 'lo':
+        if data[1] == '802-11-wireless':
+            wlan = data[0]
             continue
-        if int[0] == 'wlan0':
-            wlan = int[0]
-            continue
-        if eth == 'none':
-            eth = int[0]
+        if data[1] == '802-3-ethernet':
+            if eth == 'none':
+                eth = data[0]
     
     if enable == True:
         os.system('iptables -F')
@@ -95,6 +94,9 @@ def FireWall(enable):
         os.system('iptables -A OUTPUT -o lo -j ACCEPT')
         os.system('iptables -A INPUT -i '+eth+' -j ACCEPT')
         os.system('iptables -A OUTPUT -o '+eth+' -j ACCEPT')
+        if wlan != 'none':
+            os.system('iptables -A INPUT -i '+wlan+' -j ACCEPT')
+            os.system('iptables -A OUTPUT -o '+wlan+' -j ACCEPT')
         # drop all other incoming connections
         os.system('iptables -A INPUT -j DROP')
     else:
@@ -167,6 +169,8 @@ def ServerRegistration(cfg_data, appl):
         f.write(cfg_json)
         f.close()
         os.rename(cfg_path+'.tmp', cfg_path)
+        os.system('chown www-data:www-data '+cfg_path)
+        
 
 
 def StartTunnels(data):
@@ -188,6 +192,7 @@ def ForseRegist(cfg_data):
     f.write(cfg_json)
     f.close()
     os.rename(cfg_path+'.tmp', cfg_path)
+    os.system('chown www-data:www-data '+cfg_path)
 
     
 def MngAction(cmd, cfg_data):

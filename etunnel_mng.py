@@ -78,9 +78,11 @@ def FireWall(enable):
         if data[1] == '802-11-wireless':
             wlan = data[0]
             continue
-        if data[1] == '802-3-ethernet':
+        if data[1] == '802-3-ethernet' and ('usb' not in data[0]):
             if eth == 'none':
                 eth = data[0]
+    print('Rete eth: '+eth)
+    print('Rete wlan: '+wlan)
     
     if enable == True:
         os.system('iptables -F')

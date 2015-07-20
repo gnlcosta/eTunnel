@@ -84,7 +84,7 @@ def FireWall(enable):
     print('Rete eth: '+eth)
     print('Rete wlan: '+wlan)
     
-    if enable == True:
+    if enable == True and eth != 'none':
         os.system('iptables -F')
         os.system('iptables -X')
         os.system('iptables -P INPUT ACCEPT')

@@ -19,6 +19,9 @@ class Main extends AppController {
         TemplVar('menu_left_active', -1);
         TemplVar('menu_right', $this->Menu->Right());
         TemplVar('menu_right_active', -1);
+        $str = file_get_contents(RootDir().'/../../app.json');
+        $appl = json_decode($str, true);
+        TemplVar('app_version', $appl['version']);
     }
     
 	function Index() {

@@ -231,7 +231,7 @@ function RootDir() {
 
 function DataDir() {
     global $ROOT_DIR;
-    GLOBAL $app_dir;
+    global $app_dir;
     if (isset($app_dir))
         return $app_dir;
     return $ROOT_DIR.'/data/';

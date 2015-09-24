@@ -120,3 +120,12 @@ img {border : 0;}
     -ms-user-select: none;
     user-select: none;
 }
+
+.fsmall {
+    font-size: 65%;
+}
+
+div.green,
+small.green {
+  color: #05e606
+}

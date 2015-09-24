@@ -65,26 +65,34 @@ class TunnelThread (threading.Thread):
 
 
 def FireWall(enable):
-    # eth
-    i = 0
-    eth = 'none'
-    wlan = 'none'
-    os.system("nmcli d > /tmp/et_net_dev");
-    for line in open('/tmp/et_net_dev', 'r'):
-        i += 1
-        if i < 2:
-            continue
-        data = line.split()
-        if data[1] == '802-11-wireless':
-            wlan = data[0]
-            continue
-        if data[1] == '802-3-ethernet' and ('usb' not in data[0]):
-            if eth == 'none':
-                eth = data[0]
-    print('Rete eth: '+eth)
-    print('Rete wlan: '+wlan)
+    print('Firewall functionality disabled')
+    os.system('iptables -F')
+    os.system('iptables -t nat -F')
+    os.system('iptables -t mangle -F')
+    os.system('iptables -X')
+    os.system('iptables -t nat -X')
+    os.system('iptables -t mangle -X')
+    os.system('iptables -P INPUT ACCEPT')
+    os.system('iptables -P FORWARD ACCEPT')
+    os.system('iptables -P OUTPUT ACCEPT')
+    return
+    # network interfaces
+    netlist = []
     
-    if enable == True and eth != 'none':
+    try:
+        for (dirpath, dirnames, filenames) in os.walk('/sys/class/net/'):
+            for dirp in dirnames:
+                #if os.path.isfile('/sys/class/net/'+dirp+'/')
+                if os.path.isdir('/sys/class/net/'+dirp+'/device'):
+                    if os.path.isdir('/sys/class/net/'+dirp+'/wireless'):
+                        netlist.append(dirp)
+                    elif 'usb' not in dirp:
+                        netlist.append(dirp)
+    except:
+        return
+    
+    if enable == True and len(netlist) > 0:
+        print('Firewall ON')
         os.system('iptables -F')
         os.system('iptables -X')
         os.system('iptables -P INPUT ACCEPT')
@@ -94,14 +102,14 @@ def FireWall(enable):
         # accept on localhost
         os.system('iptables -A INPUT -i lo -j ACCEPT')
         os.system('iptables -A OUTPUT -o lo -j ACCEPT')
-        os.system('iptables -A INPUT -i '+eth+' -j ACCEPT')
-        os.system('iptables -A OUTPUT -o '+eth+' -j ACCEPT')
-        if wlan != 'none':
-            os.system('iptables -A INPUT -i '+wlan+' -j ACCEPT')
-            os.system('iptables -A OUTPUT -o '+wlan+' -j ACCEPT')
+        for intf in netlist:
+            print('Firewall '+intf+' ON')
+            os.system('iptables -A INPUT -i '+intf+' -j ACCEPT')
+            os.system('iptables -A OUTPUT -o '+intf+' -j ACCEPT')
         # drop all other incoming connections
         os.system('iptables -A INPUT -j DROP')
     else:
+        print('Firewall OFF')
         os.system('iptables -F')
         os.system('iptables -t nat -F')
         os.system('iptables -t mangle -F')
@@ -261,7 +269,7 @@ def main():
             
         # richiesta al server apertura/chiusura tunnel
         try:
-            print('Server CMD')
+            # print('Server CMD')
             if cfg_data['scheme'] == 'http':
                 conn = http.client.HTTPConnection(cfg_data['host'], timeout=9)
             else:
@@ -277,7 +285,7 @@ def main():
             action = json.load(f)
             f.close()
             os.remove(tmp_dir+'/cmd.json')
-            print(action)
+            # print(action)
             if 'action' in action:
                 new_act = True
             if 'next_call' in action:

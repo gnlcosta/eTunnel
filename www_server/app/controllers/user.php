@@ -32,12 +32,16 @@ class User extends AppController {
             TemplVar('user', SesVarGet('user'));
             $this->usr_type = SesVarGet('user_type');
         }
+        $str = file_get_contents(RootDir().'/../data/app.json');
+        $appl = json_decode($str, true);
+        TemplVar('app_version', $appl['version']);
+        ViewVar('app_version', $appl['version']);
     }
     
     function Login() {
         global $log_dir;
         if (!file_exists($log_dir))
-            @mkdir($log_dir);
+            @mkdir($log_dir, 0777, TRUE);
         SesVarSet('kbtouch', FALSE);
         TemplVar('title', 'Login');
         if ($this->usr_type == -1) {

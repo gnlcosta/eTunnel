@@ -265,3 +265,12 @@ span.ntrans {
     text-transform: uppercase;
 }
 /* display end */
+
+.fsmall {
+    font-size: 65%;
+}
+
+div.green,
+small.green {
+  color: #05e606
+}

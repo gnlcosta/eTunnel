@@ -69,7 +69,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="<?php echo $ROOT_APP; ?>">eTunnel</a>
+                <a class="navbar-brand" href="<?php echo $ROOT_APP; ?>">eTunnel<small class="fsmall green">  <?php echo $app_version; ?></small></a>
             </div>
             <div class="navbar-collapse collapse">
                 <?php if (isset($menu_left)) : ?>

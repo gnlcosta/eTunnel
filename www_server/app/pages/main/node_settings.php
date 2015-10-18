@@ -57,6 +57,11 @@
                         <a href="<?php echo EsNewUrl('main', 'nodes_list'); ?>" class="btn btn-block btn-warning btn-lg">Annulla</a>
                     </div>
                 </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <a href="<?php echo EsNewUrl('main', 'node_remove', 'id='.$node['id']); ?>" class="btn btn-block btn-danger btn-xs">Rimuovi Nodo</a>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

@@ -29,7 +29,7 @@
         <div class="form-group has-success has-feedback">
             <select name="type" class="form-control input-lg">
             <?php foreach ($types as $key => $type) :?>
-              <option value=<?php echo $key;?>><?php echo $type;?></option>
+              <option value="<?php echo $key;?>"><?php echo $type;?></option>
             <?php endforeach; ?>
             </select>
         </div>

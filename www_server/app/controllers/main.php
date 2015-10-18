@@ -9,7 +9,7 @@ $title_page = 'eTunnel';
 //$custom_css = '**.css';
 
 class Main extends AppController {
-    public $models = array('nodes');
+    public $models = array('nodes', 'users');
     public $components = array('Menu');
     private $utype;
     
@@ -18,7 +18,7 @@ class Main extends AppController {
         if (file_exists($reg_json)) {
             $str = file_get_contents($reg_json);
             $reg = json_decode($str, true);
-            // elimnazione dei dati vecchi 24 ore
+            // eliminazione dei dati vecchi 24 ore
             foreach ($reg as $sn => $data) {
                 if ($data['time'] < time()-(24*3600))
                     unset($reg[$sn]);
@@ -97,6 +97,10 @@ class Main extends AppController {
         if (count($reg) != 0) {
             TemplVar('menu_left', $this->Menu->Left(array('help' => 'Nodi registrati', 'link' => RootApp().'main/regist_list', 'title' => 'Nuovi nodi')));
         }
+        $str = file_get_contents(RootDir().'/../data/app.json');
+        $appl = json_decode($str, true);
+        TemplVar('app_version', $appl['version']);
+        ViewVar('app_version', $appl['version']);
         $this->utype = SesVarGet('user_type');
     }
     
@@ -155,6 +159,7 @@ class Main extends AppController {
         SesVarSet('node_id', $id);
         ViewVar('node_id', $id);
         ViewVar('tunnels', $tunnels);
+        ViewVar('levels', $this->users->Types());
     }
 
     function TunnelAdd() {
@@ -166,12 +171,13 @@ class Main extends AppController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_POST = EsSanitize($_POST);
             if ($this->TunneCheck() == TRUE) {
-                $this->nodes->TunnelAdd($node_id, $_POST['name'], $_POST['sport'], $_POST['dhost'], $_POST['dport']);
+                $this->nodes->TunnelAdd($node_id, $_POST['name'], $_POST['sport'], $_POST['dhost'], $_POST['dport'], $_POST['utype']);
                 EsMessage(_("Tunnel inserito"));
                 EsRedir('main', 'tunnels', 'id='.$node_id);
             }
         }
         ViewVar('node_id', $node_id);
+        ViewVar('levels', $this->users->Types(SesVarGet('user_type')));
     }
 
     function TunnelEdit() {
@@ -183,7 +189,7 @@ class Main extends AppController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && SesVarCheck('tun_id')) {
             $_POST = EsSanitize($_POST);
             if ($this->TunneCheck() == TRUE) {
-                $this->nodes->TunnelUpdate(SesVarGet('tun_id'), $node_id, $_POST['name'], $_POST['sport'], $_POST['dhost'], $_POST['dport']);
+                $this->nodes->TunnelUpdate(SesVarGet('tun_id'), $node_id, $_POST['name'], $_POST['sport'], $_POST['dhost'], $_POST['dport'], $_POST['utype']);
                 EsMessage(_("Tunnel modificato"));
                 EsRedir('main', 'tunnels', 'id='.$node_id);
             }
@@ -195,6 +201,7 @@ class Main extends AppController {
         $tunnel = $this->nodes->Tunnel($id, SesVarGet('user_type'));
         ViewVar('node_id', $node_id);
         ViewVar('tunnel', $tunnel);
+        ViewVar('levels', $this->users->Types(SesVarGet('user_type')));
     }
     
     function TunnelRemove() {
@@ -217,7 +224,6 @@ class Main extends AppController {
                 $this->nodes->UpdateTunnelSt($node['id'], 0);
             }
         }
-        //$this->nodes->Add('Menego', 'Test', 'mio', 'ooo', '', '');
         SesVarUnset('node_id');
         ViewVar('nodes', $nodes);
     }
@@ -297,6 +303,18 @@ class Main extends AppController {
                 EsRedir('user', 'regist_list');
             ViewVar('sn', $_GET['sn']);
         }
+    }
+    
+    function NodeRemove() {
+        if (!isset($_GET['id']) || $this->utype == 3) { 
+            EsMessage(_("Operazione non consentita"));
+            EsRedir('main', 'nodes_list');
+        }
+        if (isset($_GET['id'])) {
+            $this->nodes->Remove($_GET['id']);
+            EsMessage(_("Nodo rimosso"));
+        }
+        EsRedir('main', 'nodes_list');
     }
 
     function Node() {

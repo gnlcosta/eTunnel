@@ -6,6 +6,7 @@
                 <td class="vert-align"><strong>Porta sorgente</strong></td>
                 <td class="vert-align"><strong>Host destinazione</strong></td>
                 <td class="vert-align"><strong>Porta destinazione</strong></td>
+                <td class="vert-align"><strong>Livello utente</strong></td>
                 <td></td>
             </tr>
             <?php foreach ($tunnels as $tunnel) : ?>
@@ -13,7 +14,8 @@
                 <td class="vert-align"><?php echo $tunnel['name']; ?></td>
                 <td class="vert-align"><?php echo $tunnel['sport']; ?></td>
                 <td class="vert-align"><?php echo $tunnel['dhost']; ?></td>
-                <td class="vert-align"><?php echo $tunnel['dport']; ?></td>
+                <td class="vert-align"><?php echo $tunnel['dhost']; ?></td>
+                <td class="vert-align"><?php echo $levels[$tunnel['utype']]; ?></td>
                 <td>
                     <a href="<?php echo EsNewUrl('main', 'tunnel_edit', 'id='.$tunnel['id']); ?>" class="btn btn-default">
                         <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>

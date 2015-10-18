@@ -60,10 +60,10 @@ class Nodes {
 
     function Get($user_id, $utype) {
         if ($utype < 2) {
-            $result = $this->db->query('SELECT * FROM nodes;');
+            $result = $this->db->query('SELECT * FROM nodes ORDER BY name ASC;');
         }
         else {
-            $result = $this->db->query('SELECT * FROM nodes;');
+            $result = $this->db->query('SELECT * FROM nodes ORDER BY name ASC;');
         }
         if ($result !== FALSE) {
             $resp = array();
@@ -78,7 +78,7 @@ class Nodes {
     }
 
     function Tunnels($node_id, $utype) {
-        $result = $this->db->query('SELECT * FROM tunnels WHERE node_id='.$node_id.' AND utype >= '.$utype.';');
+        $result = $this->db->query('SELECT * FROM tunnels WHERE node_id='.$node_id.' AND utype >= '.$utype.' ORDER BY sport ASC;');
         if ($result !== FALSE) {
             $tuns = array();
             while ($row = $result->fetchArray()) {
@@ -102,16 +102,16 @@ class Nodes {
         return FALSE;
     }
 
-    function TunnelAdd($node_id, $name, $sport, $dhost, $dport) {
-        $this->db->exec("INSERT INTO tunnels (node_id, name, sport, dhost, dport) VALUES ('".$node_id."', '".$name."', '".$sport."', '".$dhost."', '".$dport."');");
+    function TunnelAdd($node_id, $name, $sport, $dhost, $dport, $utype) {
+        $this->db->exec("INSERT INTO tunnels (node_id, name, sport, dhost, dport, utype) VALUES ('".$node_id."', '".$name."', '".$sport."', '".$dhost."', '".$dport."', '".$utype."');");
     }
 
-    function TunnelUpdate($tun_id, $node_id, $name, $sport, $dhost, $dport) {
-        $this->db->exec("UPDATE tunnels SET name='".$name."', sport='".$sport."', dhost='".$dhost."', dport='".$dport."' WHERE id=".$tun_id." AND node_id=".$node_id.";");
+    function TunnelUpdate($tun_id, $node_id, $name, $sport, $dhost, $dport, $utype) {
+        $this->db->exec("UPDATE tunnels SET name='".$name."', sport='".$sport."', dhost='".$dhost."', dport='".$dport."', utype='".$utype."' WHERE id=".$tun_id." AND node_id=".$node_id.";");
     }
 
     function TunnelRemove($id) {
-        $this->db->query('DELETE FROM tunnels WHERE id = '.$id);
+        $this->db->exec('DELETE FROM tunnels WHERE id = '.$id.';');
     }
 
     function Node($id) {
@@ -127,6 +127,10 @@ class Nodes {
     
     function Add($name, $descrip, $sn, $idn, $enckey, $phone) {
         $this->db->exec("INSERT INTO nodes (name, descrip, sn, idn, enckey, phone) VALUES ('".$name."', '".$descrip."', '".$sn."', '".$idn."', '".$enckey."', '".$phone."');");
+    }
+    
+    function Remove($id) {
+        $this->db->exec('DELETE FROM nodes WHERE id = '.$id.';');
     }
 
     function UpdateEncKey($id, $enckey) {

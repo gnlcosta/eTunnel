@@ -27,6 +27,16 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label for="dport" class="col-sm-4 control-label">Livello accesso:</label>
+                    <div class="col-sm-8">
+                        <select name="utype" class="form-control input-lg">
+                        <?php foreach ($levels as $key => $type) :?>
+                          <option value="<?php echo $key;?>"><?php echo $type;?></option>
+                        <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
                     <div class="col-sm-12">
                     <input type="submit" class="btn btn-default btn-block btn-success btn-lg" value="Conferma"></input>
                     </div>

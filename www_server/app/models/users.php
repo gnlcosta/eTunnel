@@ -50,12 +50,18 @@ class Users {
     
     function Search($user) {
         $result = $this->db->query("SELECT * FROM users WHERE user = '".$user."'");
-        return $result->fetchArray();
+        if ($result !== FALSE) {
+            return $result->fetchArray();
+        }
+        return FALSE;
     }
     
     function SearchByID($id) {
         $result = $this->db->query('SELECT * FROM users WHERE id = '.$id);
-        return $result->fetchArray();
+        if ($result !== FALSE) {
+            return $result->fetchArray();
+        }
+        return FALSE;
     }
     
     function Save($id, $newdata) {

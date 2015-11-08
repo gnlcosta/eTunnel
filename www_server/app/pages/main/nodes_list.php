@@ -4,9 +4,11 @@
 			<div id="ip_<?php echo $node['id']; ?>" class="nlabel">---</div>
 			<div class="ncont display">
                 <div class="displ-count"> <?php echo $node['name']; ?></div>
-                <div id="on_<?php echo $node['id']; ?>" class="dispoff"> 
-                    <button data-id="<?php echo $node['id']; ?>" class="start btn btn-block btn-info btn-xs">Start</button>
-                    <button data-id="<?php echo $node['id']; ?>" class="stop btn btn-block btn-warning btn-xs">Stop</button>
+                <div id="on_<?php echo $node['id']; ?>" class="dispoff">
+                    <button class="dispoff start btn btn-block btn-info btn-xs"></button>
+                    <button id="boff_<?php echo $node['id']; ?>" data-id="<?php echo $node['id']; ?>" class="dispoff start btn btn-block btn-info btn-xs">Start</button>
+                    <button id="bon_<?php echo $node['id']; ?>" data-id="<?php echo $node['id']; ?>" class="dispoff stop btn btn-block btn-warning btn-xs">Stop</button>
+                    <button id="con_<?php echo $node['id']; ?>" data-id="<?php echo $node['id']; ?>" class="dispoff tlink btn btn-block btn-primary btn-xs" data-toggle="popover" title="Tunnel attivi su <?php echo $_SERVER['SERVER_ADDR']; ?>" data-container="body" data-placement="bottom">Tunnel</button>
                     <?php if ($node['sms_updown']): ?>
                     <button data-id="<?php echo $node['id']; ?>" class="sms_start btn btn-block btn-warning btn-xs">SMS-Stop</button>
                     <?php endif;?>
@@ -30,6 +32,34 @@
 
 <script>
 var instatus;
+var tunnels = null;
+
+function details_in_popup(link, div_id){
+    $.ajax({
+        url: link,
+        success: function(response){
+            $('#'+div_id).html(response);
+        }
+    });
+    return '<div id="'+ div_id +'"><table class="table table-striped"><tr><td class="vert-align"><strong>Nome</strong></td><td class="vert-align"><strong>Porta d\'accesso</strong></td></tr></div>';
+}
+
+$('.tlink').popover({
+    "html": true,
+    "content": function() {
+        var div_id =  "tmp-id-" + $.now();
+        return details_in_popup('<?php echo EsNewUrl('main','tunnels_on');?>'+'?id='+$(this).data('id'), div_id);
+    }
+});
+
+$('.tlink').on('show.bs.popover', function () {
+    var id = $(this).data('id');
+    if (tunnels != null && tunnels != id)
+        $('#con_'+tunnels).popover('hide');
+    //alert('sd '+);
+    tunnels = id;
+});
+
 
 function VisualStatus(data) {
     var values;
@@ -57,13 +87,21 @@ function VisualStatus(data) {
             $('#ball_a_'+id).attr('class', 'ball_a nlost');
             $('#on_'+id).hide(300);
             $('#off_'+id).show(300);
+            $('#con_'+id).popover('hide');
         }
         switch (value['tunnel']) {
         case 0: // tunnel off
             $('#ball_b_'+id).attr('class', 'ball_b ndisab');
+            $('#bon_'+id).hide();
+            $('#boff_'+id).show();
+            $('#con_'+id).hide();
+            $('#con_'+id).popover('hide');
             break;
-        case 1: // tunnel off
+        case 1: // tunnel on
             $('#ball_b_'+id).attr('class', 'ball_b');
+            $('#boff_'+id).hide();
+            $('#bon_'+id).show();
+            $('#con_'+id).show();
             break;
         case 2: // tunnel started o stoped
             $('#ball_b_'+id).attr('class', 'ball_b ntrans');
@@ -110,18 +148,22 @@ $(function() {
 	});
     
 	$('.start').click(function() {
+        $('.tlink').popover('hide');
         Action('<?php echo EsNewUrl('main','start');?>'+'?id='+$(this).data('id'));
 	});
     
 	$('.stop').click(function() {
+        $('.tlink').popover('hide');
         Action('<?php echo EsNewUrl('main','stop');?>'+'?id='+$(this).data('id'));
 	});
     
 	$('.sms_start').click(function() {
+        $('.tlink').popover('hide');
         Action('<?php echo EsNewUrl('main','sms_start');?>'+'?id='+$(this).data('id'));
 	});
     
 	$('.sms_stop').click(function() {
+        $('.tlink').popover('hide');
         Action('<?php echo EsNewUrl('main','sms_stop');?>'+'?id='+$(this).data('id'));
 	});
 

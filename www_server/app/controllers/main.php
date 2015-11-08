@@ -152,6 +152,16 @@ class Main extends AppController {
         EsMessage(_("Tunnel in arresto"));
     }
 
+    function TunnelsOn() {
+        if (!isset($_GET['id'])) { 
+            die();
+        }
+        EsTemplate('none');
+        $id = $_GET['id'];
+        $tunnels = $this->nodes->Tunnels($id, SesVarGet('user_type'));
+        ViewVar('tunnels', $tunnels);
+    }
+
     function Tunnels() {
         if (!isset($_GET['id']) || $this->utype == 3) { 
             EsMessage(_("Operazione non consentita"));

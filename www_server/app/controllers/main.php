@@ -117,6 +117,9 @@ class Main extends AppController {
                 $cfg = TRUE;
             }
         }
+        if ($cfg) {
+            EsRedir('main', 'nodes_list');
+        }
         ViewVar('cfg', $cfg);
         ViewVar('appl', $appl);
 	}
@@ -160,6 +163,7 @@ class Main extends AppController {
         ViewVar('node_id', $id);
         ViewVar('tunnels', $tunnels);
         ViewVar('levels', $this->users->Types());
+        ViewVar('user_type', SesVarGet('user_type'));
     }
 
     function TunnelAdd() {
@@ -449,6 +453,74 @@ class Main extends AppController {
             die();
         }
         die();
+    }
+    
+    function UserDelete() {
+        if (!isset($_GET['id']) || $this->utype == 3) {
+            EsMessage(_("Operazione non consentita"));
+            EsRedir('main', 'nodes_list');
+        }
+        if (isset($_GET['id'])) {
+            $user_id = $_GET['id'];
+            $user_info = $this->users->SearchByID($user_id);
+            if ($user_info == FALSE) {
+                EsMessage(_("Operazione non consentita"));
+                EsRedir('main', 'nodes_list');
+            }
+            $this->nodes->RemoveUser($user_id);
+            EsRedir('user', 'delete', 'id='.$user_id);
+        }
+    }
+    
+    function UserNodes() {
+        if (!isset($_GET['id']) || $this->utype == 3) {
+            EsMessage(_("Operazione non consentita"));
+            EsRedir('main', 'nodes_list');
+        }
+        $user_id = $_GET['id'];
+        $user_info = $this->users->SearchByID($user_id);
+        if ($user_info == FALSE) {
+            EsMessage(_("Operazione non consentita"));
+            EsRedir('main', 'nodes_list');
+        }
+        $user_nodes = $this->nodes->UserNodes($user_id);
+        $nodes = $this->nodes->Get(SesVarGet('user_id'), 1);
+        foreach ($nodes as &$node) {
+            $node['enabled'] = FALSE;
+            if ($user_nodes !== FALSE) {
+                foreach ($user_nodes as $unode) {
+                    if ($unode['node_id'] == $node['id']) {
+                        $node['enabled'] = TRUE;
+                        break;
+                    }
+                }
+            }
+        }
+        SesVarSet('user_id', $user_id);
+        ViewVar('user_info', $user_info);
+        ViewVar('nodes', $nodes);
+    }
+    
+    function UserAddNode() {
+        if (!isset($_GET['id']) || $this->utype == 3 || !SesVarCheck('user_id')) {
+            EsMessage(_("Operazione non consentita"));
+            EsRedir('main', 'nodes_list');
+        }
+        $user_id = SesVarGet('user_id');
+        $this->nodes->UserAddNode($user_id, $_GET['id']);
+        EsMessage(_("Nodo Abilitato"));
+        EsRedir('main', 'user_nodes', 'id='.$user_id);
+    }
+    
+    function UserDelNode() {
+        if (!isset($_GET['id']) || $this->utype == 3 || !SesVarCheck('user_id')) {
+            EsMessage(_("Operazione non consentita"));
+            EsRedir('main', 'nodes_list');
+        }
+        $user_id = SesVarGet('user_id');
+        $this->nodes->UserDelNode($user_id, $_GET['id']);
+        EsMessage(_("Nodo Disabilitato"));
+        EsRedir('main', 'user_nodes', 'id='.$user_id);
     }
 
     function Credits() {

@@ -7,10 +7,12 @@ class Nodes {
         if (file_exists($db_file)) {
             $this->db = new SQLite3($db_file);
             $this->db->busyTimeout(5000);
+            $this->db->exec('PRAGMA foreign_keys = ON');
         }
         else {
             $this->db = new SQLite3($db_file);
             $this->db->busyTimeout(5000);
+            $this->db->exec('PRAGMA foreign_keys = ON');
             $this->Create();
         }
     }
@@ -44,7 +46,8 @@ class Nodes {
         $this->db->exec("CREATE TABLE IF NOT EXISTS node_users (
             id INTEGER NOT NULL PRIMARY KEY,
             user_id INTEGER NOT NULL,
-            node_id INTEGER NOT NULL
+            node_id INTEGER NOT NULL,
+            FOREIGN KEY(node_id) REFERENCES nodes(id) ON DELETE CASCADE
         )");
         
         $this->db->exec('CREATE TABLE IF NOT EXISTS tunnels (
@@ -59,11 +62,11 @@ class Nodes {
     }
 
     function Get($user_id, $utype) {
-        if ($utype < 2) {
+        if ($utype < 3) {
             $result = $this->db->query('SELECT * FROM nodes ORDER BY name ASC;');
         }
         else {
-            $result = $this->db->query('SELECT * FROM nodes ORDER BY name ASC;');
+            $result = $this->db->query('SELECT * FROM nodes, node_users WHERE nodes.id == node_users.node_id AND node_users.user_id == '.$user_id.' ORDER BY name ASC;');
         }
         if ($result !== FALSE) {
             $resp = array();
@@ -131,6 +134,11 @@ class Nodes {
     
     function Remove($id) {
         $this->db->exec('DELETE FROM nodes WHERE id = '.$id.';');
+        $this->db->exec('DELETE FROM node_users WHERE node_id = '.$id.';');
+    }
+    
+    function RemoveUser($id) {
+        $this->db->exec('DELETE FROM node_users WHERE user_id = '.$id.';');
     }
 
     function UpdateEncKey($id, $enckey) {
@@ -181,7 +189,26 @@ class Nodes {
         return FALSE;
     }
     
-    function Search($src) {
+    function UserNodes($uid) {
+        $result = $this->db->query('SELECT * FROM node_users WHERE user_id = "'.$uid.'";');
+        if ($result !== FALSE) { 
+            $nodes = array();
+            while ($row = $result->fetchArray()) {
+                $nodes[] = $row;
+            }
+            $result->finalize();
+            return $nodes;
+        }
         
+        return FALSE;
     }
+    
+    function UserAddNode($uid, $nid) {
+        $this->db->exec("INSERT INTO node_users (user_id, node_id) VALUES (".$uid.', '.$nid.");");
+    }
+    
+    function UserDelNode($uid, $nid) {
+        $this->db->exec('DELETE FROM node_users WHERE user_id = '.$uid.' AND node_id = '.$nid.';');
+    }
+    
 }

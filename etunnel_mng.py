@@ -287,7 +287,9 @@ def main():
         except Exception as e:
             error_cnt += 1
             logging.debug('Connection Error: %s', e)
-            logging.debug(' Con: %s %s', resp.status, resp.reason)
+            if 'resp' in locals():
+                if hasattr(resp, 'status') and hasattr(resp, 'reason'):
+                    logging.debug(' Con: %s %s', resp.status, resp.reason)
             print(Exception('Connection Error: %s' % e))
         finally:
             conn.close()

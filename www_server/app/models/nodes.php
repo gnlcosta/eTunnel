@@ -57,7 +57,8 @@ class Nodes {
             name TEXT,
             sport INTEGER DEFAULT 0,
             dhost TEXT NOT NULL,
-            dport INTEGER NOT NULL
+            dport INTEGER NOT NULL,
+            FOREIGN KEY(node_id) REFERENCES nodes(id) ON DELETE CASCADE
         )');
     }
 
@@ -134,6 +135,7 @@ class Nodes {
     
     function Remove($id) {
         $this->db->exec('DELETE FROM nodes WHERE id = '.$id.';');
+        $this->db->exec('DELETE FROM tunnels WHERE node_id = '.$id.';');
         $this->db->exec('DELETE FROM node_users WHERE node_id = '.$id.';');
     }
     

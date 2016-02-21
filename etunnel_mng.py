@@ -112,9 +112,14 @@ def FireWall(enable):
         os.system('iptables -P OUTPUT ACCEPT')
 
 
-def SerialNumber(cfg_data):
+def SerialNumber():
     macbin = get_mac()
     sn = ''.join('%02X' % ((macbin >> 8*i) & 0xff) for i in reversed(range(6)))
+    return sn
+
+
+def SerialNumberSave(cfg_data):
+    sn = SerialNumber()
     cfg_data['sn'] = sn
     f = open(cfg_path+'.tmp', 'w')
     cfg_json = json.dumps(cfg_data)
@@ -129,7 +134,7 @@ def ServerRegistration(cfg_data, appl):
     if 'sn' in cfg_data and cfg_data['sn'] != '':
         sn = cfg_data['sn']
     else:
-        sn = SerialNumber(cfg_data)
+        sn = SerialNumberSave(cfg_data)
     ck = hashlib.md5()
     ck.update((sn+appl['name']+'/'+appl['version']).encode('utf-8'))
     ck = ck.hexdigest()
@@ -187,9 +192,10 @@ def StartTunnels(data):
         i += 1
 
 
-def ForseRegist(cfg_data):
+def ReqNewRegist(cfg_data):
+    sn = SerialNumber()
     f = open(cfg_path+'.tmp', 'w')
-    cfg_json = '{"scheme": "'+cfg_data['scheme']+'", "host": "'+cfg_data['host']+'", "path": "'+cfg_data['path']+'", "sn": "'+cfg_data['sn']+'"}'
+    cfg_json = '{"scheme": "'+cfg_data['scheme']+'", "host": "'+cfg_data['host']+'", "path": "'+cfg_data['path']+'", "sn": "'+sn+'"}'
     f.write(cfg_json)
     f.close()
     os.rename(cfg_path+'.tmp', cfg_path)
@@ -213,7 +219,8 @@ def MngAction(cmd, cfg_data):
         print("Tunnels stopped")
         
     elif cmd['action'] == 'register':
-        ForseRegist(cfg_data)
+        ReqNewRegist(cfg_data)
+
     
 def main():
     global tunnel_state
@@ -237,17 +244,25 @@ def main():
         while idn == False:
             cfg = False
             while cfg == False:
+                cfg = True
                 try:
                     if not os.path.isfile(cfg_path):
-                        SerialNumber({})
+                        SerialNumberSave({})
                     f = open(cfg_path)
                     cfg_data = json.load(f)
                     f.close()
                     if 'sn' not in cfg_data:
-                        SerialNumber(cfg_data)
-                    if 'host' in cfg_data:
-                        cfg = True
+                        SerialNumberSave(cfg_data)
+                        cfg = False
+                    if cfg_data['sn'] != SerialNumber():
+                        cfg_data['idn'] = ''
+                        del cfg_data['idn']
+                        SerialNumberSave(cfg_data)
+                        cfg = False
+                    if 'host' not in cfg_data:
+                        cfg = False
                 except:
+                    cfg = False
                     pass
                 time.sleep(0.25)
             if 'idn' not in cfg_data:
@@ -302,7 +317,7 @@ def main():
                 timeout_stop = -1
         elif error_cnt >= 5:
             print('Rinegoziazione')
-            ForseRegist(cfg_data)
+            ReqNewRegist(cfg_data)
             firewall = False
             FireWall(False)
 

@@ -110,7 +110,7 @@
     
     <div id="footer">
         <div class="container">
-            <p>&copy; 2015 <a href="http://www.evolka.it">Evolka</a>. GNU Affero General Public License.</p>
+            <p>&copy; 2014-2016 <a href="http://www.evolka.it">Evolka</a>. GNU Affero General Public License.</p>
         </div>
     </div>
     <?php if (!empty($php_errors)): ?>

@@ -12,6 +12,7 @@ pkg: clean
 	rm -rf $(APP_DIR)
 
 srv:
+	mkdir -p www_server/data/
 	cp app.json www_server/data/
 	tar czvf $(PKG_NAME)_server-$(VERSION).tgz www_server
 

@@ -57,7 +57,7 @@ class User extends AppController {
             $password = EsSanitize($_POST['password']);
             $udata = $this->users->Search($user);
             if ($udata !== FALSE) {
-                if ($udata['password'] == md5($password)) {
+                if (password_verify($password, $udata['password'])) {
                     SesVarSet('user_id', $udata['id']);
                     SesVarSet('user', $udata['user']);
                     SesVarSet('user_type',$udata['type'] );
@@ -102,10 +102,10 @@ class User extends AppController {
             if ($udata !== FALSE && isset($_POST['password_rep']) && isset($_POST['password'])) {
                 if ($_POST['password_rep'] != $_POST['password'])
                     EsMessage(_('Le due password non coincidono'));
-                else if ($udata['password'] == md5($_POST['password']))
+                else if (password_verify($_POST['password'], $udata['password']))
                     EsMessage(_("La password deve essere diversa dall'attuale"));
                 else {
-                    $this->users->Save($id, array('password' => md5($_POST['password'])));
+                    $this->users->Save($id, array('password' => password_hash($_POST['password'], PASSWORD_DEFAULT)));
                     EsMessage(_('Password Cambiata'));
                     EsRedir('user');
                 }
@@ -142,7 +142,7 @@ class User extends AppController {
             if (isset($_POST['user']) && isset($_POST['password']) && isset($_POST['type'])) {
                 $new = array();
                 $new['user'] = EsSanitize($_POST['user']);
-                $new['password'] = md5(EsSanitize($_POST['password']));
+                $new['password'] = password_hash(EsSanitize($_POST['password'], PASSWORD_DEFAULT));
                 $udata = $this->users->Search($new['user']);
                 if ($udata !== FALSE) {
                     EsMessage(_('Nome Utente già presente'));

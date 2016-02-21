@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 #    eTunnel
-#    Copyright (C) 2015 Gianluca Costa <g.costa@xplico.org>
+#    Copyright (C) 2015-2016 Gianluca Costa <g.costa@xplico.org>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -127,6 +127,7 @@ def SerialNumberSave(cfg_data):
     f.close()
     os.rename(cfg_path+'.tmp', cfg_path)
     os.system('chown www-data:www-data '+cfg_path)
+    os.system('sync')
     return sn
     
         
@@ -154,7 +155,13 @@ def ServerRegistration(cfg_data, appl):
         f.close()
         if os.path.isfile(fcmd):
             os.remove(fcmd)
-        os.system('/usr/bin/ccrypt -f -d -K '+sn+' '+fcmd+'.cpt')
+        if 'master_enckey' in cfg_data:
+            mkey = cfg_data['master_enckey']
+        else:
+            mkey = sn
+        os.system('/usr/bin/ccrypt -f -d -K "'+mkey+'" '+fcmd+'.cpt')
+        if not os.path.isfile(fcmd):
+            os.system('/usr/bin/ccrypt -f -d -K "'+sn+'" '+fcmd+'.cpt')
         #os.remove(fcmd+'.cpt')
         f = open(fcmd)
         action = json.load(f)
@@ -162,20 +169,25 @@ def ServerRegistration(cfg_data, appl):
         os.remove(fcmd)
         if 'idn' in action:
             if 'enckey' in action:
-                idn = action['idn']
-                enckey = action['enckey']
-                print('Chiave: '+enckey)
+                cfg_data['idn'] = action['idn']
+                cfg_data['enckey'] = action['enckey']
+                print('Chiave: '+cfg_data['enckey'])
+                if 'master_enckey' in action:
+                    cfg_data['master_enckey'] = action['master_enckey']
+                    print('Chiave M: '+cfg_data['master_enckey'])
     except Exception as e:
         print(Exception('Registration Error: %s' % e))
     finally:
         conn.close()
-    if idn != '':
+    if 'idn' in cfg_data:
         f = open(cfg_path+'.tmp', 'w')
-        cfg_json = '{"scheme": "'+cfg_data['scheme']+'", "host": "'+cfg_data['host']+'", "path": "'+cfg_data['path']+'", "idn": "'+idn+'", "sn": "'+sn+'", "enckey": "'+enckey+'"}'
+        #cfg_json = '{"scheme": "'+cfg_data['scheme']+'", "host": "'+cfg_data['host']+'", "path": "'+cfg_data['path']+'", "idn": "'+idn+'", "sn": "'+sn+'", "enckey": "'+enckey+'"}'
+        cfg_json = json.dumps(cfg_data)
         f.write(cfg_json)
         f.close()
         os.rename(cfg_path+'.tmp', cfg_path)
         os.system('chown www-data:www-data '+cfg_path)
+        os.system('sync')
         
 
 
@@ -183,7 +195,7 @@ def StartTunnels(data):
     i = 0
     for tun in data['tunnels']:
         # Create new thread
-        thread = TunnelThread(i, tun['name'], tun['sport'], tun['dsthost'], tun['dstport'], data['params']['user'], data['params']['password'], data['params']['server'], data['params']['sshport'])
+        thread = TunnelThread(i, tun['name'], tun['sport'], tun['dsthost'], tun['dstport'], data['params']['user'], data['params']['password'], data['params']['server'], data['params']['ssh_port'])
         # Start new Thread
         thread.daemon = True
         thread.start()
@@ -193,9 +205,12 @@ def StartTunnels(data):
 
 
 def ReqNewRegist(cfg_data):
-    sn = SerialNumber()
+    # remove idn
+    if 'idn' in cfg_data:
+        del cfg_data['idn']
     f = open(cfg_path+'.tmp', 'w')
-    cfg_json = '{"scheme": "'+cfg_data['scheme']+'", "host": "'+cfg_data['host']+'", "path": "'+cfg_data['path']+'", "sn": "'+sn+'"}'
+    #cfg_json = '{"scheme": "'+cfg_data['scheme']+'", "host": "'+cfg_data['host']+'", "path": "'+cfg_data['path']+'", "sn": "'+sn+'", "master_enckey": "'+cfg_data['master_enckey']+'"}'
+    cfg_json = json.dumps(cfg_data)
     f.write(cfg_json)
     f.close()
     os.rename(cfg_path+'.tmp', cfg_path)
@@ -255,20 +270,23 @@ def main():
                         SerialNumberSave(cfg_data)
                         cfg = False
                     if cfg_data['sn'] != SerialNumber():
-                        cfg_data['idn'] = ''
-                        del cfg_data['idn']
+                        if 'idn' in cfg_data:
+                            del cfg_data['idn']
+                        if 'master_enckey' in cfg_data:
+                            del cfg_data['master_enckey']
                         SerialNumberSave(cfg_data)
                         cfg = False
                     if 'host' not in cfg_data:
                         cfg = False
-                except:
+                except Exception as e:
+                    print(Exception('Registration Error: %s' % e))
                     cfg = False
                     pass
                 time.sleep(0.25)
             if 'idn' not in cfg_data:
                 error_cnt = 0
                 time.sleep(1)
-                print('Registrazione')
+                print('Registration')
                 ServerRegistration(cfg_data, appl)
             else:
                 idn = True
@@ -316,7 +334,7 @@ def main():
             else:
                 timeout_stop = -1
         elif error_cnt >= 5:
-            print('Rinegoziazione')
+            print('Force Registration')
             ReqNewRegist(cfg_data)
             firewall = False
             FireWall(False)

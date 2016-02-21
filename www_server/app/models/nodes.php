@@ -30,6 +30,7 @@ class Nodes {
             sn TEXT NOT NULL,
             idn INTEGER NOT NULL,
             enckey TEXT NOT NULL,
+            master_enckey TEXT NOT NULL,
             phone TEXT,
             sms_updown BOOLEAN DEFAULT 0,
             auto_start BOOLEAN DEFAULT 0,
@@ -129,8 +130,8 @@ class Nodes {
             return FALSE;
     }
     
-    function Add($name, $descrip, $sn, $idn, $enckey, $phone) {
-        $this->db->exec("INSERT INTO nodes (name, descrip, sn, idn, enckey, phone) VALUES ('".$name."', '".$descrip."', '".$sn."', '".$idn."', '".$enckey."', '".$phone."');");
+    function Add($name, $descrip, $sn, $idn, $enckey, $master_enckey, $phone) {
+        $this->db->exec("INSERT INTO nodes (name, descrip, sn, idn, enckey, master_enckey, phone) VALUES ('".$name."', '".$descrip."', '".$sn."', '".$idn."', '".$enckey."', '".$master_enckey."', '".$phone."');");
     }
     
     function Remove($id) {
@@ -145,6 +146,10 @@ class Nodes {
 
     function UpdateEncKey($id, $enckey) {
         $this->db->exec("UPDATE nodes SET enckey='".$enckey."' WHERE id=".$id.";");        
+    }
+    
+    function UpdateMasterKey($id, $mkey) {
+        $this->db->exec("UPDATE nodes SET master_enckey='".$mkey."' WHERE id=".$id.";");        
     }
 
     function Update($id, $name, $descrip, $phone, $sms_updown, $auto_start, $disable) {

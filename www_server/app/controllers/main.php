@@ -113,7 +113,7 @@ class Main extends AppController {
         if (file_exists($ssh_cfg)) {
             $str = file_get_contents($ssh_cfg);
             $scfg = json_decode($str, true);
-            if (isset($scfg['server']) && isset($scfg['user']) && isset($scfg['password']) && isset($scfg['sshport'])) {
+            if (isset($scfg['server']) && isset($scfg['user']) && isset($scfg['password']) && isset($scfg['ssh_port'])) {
                 $cfg = TRUE;
             }
         }
@@ -308,7 +308,8 @@ class Main extends AppController {
             }
             $idn = md5($_POST['sn'].time());
             $enckey = md5($idn.time());
-            $this->nodes->Add($_POST['name'], $_POST['descrip'], $_POST['sn'], $idn, $enckey, $_POST['phone']);
+            $master_enckey = '';
+            $this->nodes->Add($_POST['name'], $_POST['descrip'], $_POST['sn'], $idn, $enckey, $master_enckey, $_POST['phone']);
             EsMessage(_("Nodo Aggiunto"));
             EsRedir('main', 'nodes_list');
         }
@@ -442,12 +443,21 @@ class Main extends AppController {
                     $this->nodes->UpdateEncKey($node['id'], $enckey);
                     $node = $this->nodes->GetSn($sn);
                 }
+                if ($node['master_enckey'] == '') {
+                    $mkey = md5($node['idn'].$node['name'].mt_rand(0, 165000));
+                    $this->nodes->UpdateMasterKey($node['id'], $mkey);
+                    $node = $this->nodes->GetSn($sn);
+                    $mkey = $sn;
+                }
+                else  {
+                    $mkey = $node['master_enckey'];
+                }
                 // json con i dati per la messaggistica cifrata
-                $resp = array('idn' => $node['idn'], 'enckey' => $node['enckey']);
+                $resp = array('idn' => $node['idn'], 'enckey' => $node['enckey'], 'master_enckey' => $node['master_enckey']);
                 $str = json_encode($resp);
                 $resp_file = '/tmp/reg_'.$sn.'.json';
                 file_put_contents($resp_file, $str);
-                $cmd = '/usr/bin/ccrypt -f -e -K '.$sn.' '.$resp_file;
+                $cmd = '/usr/bin/ccrypt -f -e -K '.$mkey.' '.$resp_file;
                 system($cmd);
                 $resp_file = $resp_file.'.cpt';
                 if (file_exists($resp_file)) {

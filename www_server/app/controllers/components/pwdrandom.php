@@ -8,9 +8,6 @@ class PwdRandom {
     
     function Check($a, $b) {
         // customize
-        if ($a == $b)
-            return TRUE;
-        else
-            return FALSE;
+        return FALSE;
     }
 }

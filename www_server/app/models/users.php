@@ -34,10 +34,7 @@ class Users {
             cng_pwd BOOLEAN DEFAULT 0
         )');
         // utenti di default
-        $this->db->exec("INSERT INTO users (user, password, type, cng_pwd) VALUES ('evolka', 'random', 0, 0);
-                         INSERT INTO users (user, password, type, cng_pwd) VALUES ('".$prj_name."', 'random', 1, 0);
-                         INSERT INTO users (user, password, type, cng_pwd) VALUES ('admin', '".md5('admin')."', 1, 1);
-        ");
+        $this->db->exec("INSERT INTO users (user, password, type, cng_pwd) VALUES ('admin', '".password_hash('admin', PASSWORD_DEFAULT)."', 1, 1);");
     }
 
     function Add($new) {

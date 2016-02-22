@@ -177,10 +177,10 @@ def ServerRegistration(cfg_data, appl):
             if 'enckey' in action:
                 cfg_data['idn'] = action['idn']
                 cfg_data['enckey'] = action['enckey']
-                print('Chiave: '+cfg_data['enckey'])
+                #print('key: '+cfg_data['enckey'])
                 if 'master_enckey' in action:
                     cfg_data['master_enckey'] = action['master_enckey']
-                    print('Chiave M: '+cfg_data['master_enckey'])
+                    #print('Master key: '+cfg_data['master_enckey'])
     except Exception as e:
         print(Exception('Registration Error: %s' % e))
     finally:
@@ -195,7 +195,6 @@ def ServerRegistration(cfg_data, appl):
         os.system('chown www-data:www-data '+cfg_path)
         os.system('sync')
         
-
 
 def StartTunnels(data):
     i = 0
@@ -247,6 +246,7 @@ def MngAction(cmd, cfg_data):
         for t in threads:
             t.join()
         tunnel_state = 'off'
+        os.remove(ssh_key_path)
         print("Tunnels stopped")
         
     elif cmd['action'] == 'register':
@@ -257,9 +257,9 @@ def main():
     global tunnel_state
     logging.basicConfig(filename='/data/embed/etunnel/etunnel.log', format='%(asctime)s %(levelname)s:%(message)s', level=logging.WARNING)
     
-    # timeout errori in connessione
+    # connection error timeout
     error_cnt = 0
-    # dati applicazione
+    # application data
     f = open('app.json')
     appl = json.load(f)
     f.close()
@@ -267,9 +267,9 @@ def main():
     timeout_stop = -1
     firewall = False
     
-    # registrazione al server... se non gia' eseguita
+    # server registration... if the first time
     while True:
-        next_call = 5 # valore di default (in caso di errore in connesisone...)
+        next_call = 5 # default value (in case of connection error...)
         idn = False
         new_act = False
         while idn == False:
@@ -307,7 +307,7 @@ def main():
             else:
                 idn = True
             
-        # richiesta al server apertura/chiusura tunnel
+        # server request to know if start or stop tunnels
         try:
             # print('Server CMD')
             if cfg_data['scheme'] == 'http':
@@ -357,7 +357,7 @@ def main():
 
         i = 0
         while i < next_call:
-            # chiusura per timeout
+            # stop for timeout
             if timeout_stop != -1 and timeout_stop < time.time():
                 MngAction({'action': 'stop'}, cfg_data)
                 timeout_stop = -1

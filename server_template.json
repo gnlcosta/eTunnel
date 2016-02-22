@@ -3,5 +3,6 @@
     "user": "",
     "password": "",
     "ssh_port": ,
-    "timeout": 
+    "timeout": ,
+    "ssh_key": ""
 }

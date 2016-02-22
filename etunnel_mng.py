@@ -24,6 +24,7 @@ import os
 import json
 import http.client
 import hashlib
+from stat import *
 from uuid import getnode as get_mac
 import logging
 
@@ -31,6 +32,7 @@ tmp_dir = '/tmp/'
 config_dir = '/data/embed/etunnel/'
 #config_dir = '/tmp/'
 cfg_path = config_dir+'/etunnel_cfg.json'
+ssh_key_path = config_dir+'/ssh_key.pem'
 
 os.system('mkdir -p '+config_dir)
 os.system('chown -R www-data:www-data '+config_dir)
@@ -41,7 +43,7 @@ threads = []
 tunnel_state = 'off'
         
 class TunnelThread (threading.Thread):
-    def __init__(self, ind, name, sport, dsthost, dstport, user, password, server, server_port):
+    def __init__(self, ind, name, sport, dsthost, dstport, user, password, server, server_port, ssh_key_path):
         threading.Thread.__init__(self)
         self.ind = ind
         self.name = name
@@ -52,20 +54,24 @@ class TunnelThread (threading.Thread):
         self.password = password
         self.server = server
         self.server_port = str(server_port)
+        self.ssh_key_path = ssh_key_path
         
     def run(self):
         global stop_tunnel
         print("Starting Tunnel " + self.name)
         while stop_tunnel == False:
-            os.system('sshpass -p '+self.password+' ssh -R '+self.sport+':'+self.dsthost+':'+self.dstport+' '+self.user+'@'+self.server+' -p '+self.server_port+' -N -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=10 -o ServerAliveCountMax=3')
+            if self.password != '':
+                os.system('sshpass -p '+self.password+' ssh -R '+self.sport+':'+self.dsthost+':'+self.dstport+' '+self.user+'@'+self.server+' -p '+self.server_port+' -N -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=10 -o ServerAliveCountMax=3')
+            else:
+                os.system('ssh -i '+self.ssh_key_path+' -R '+self.sport+':'+self.dsthost+':'+self.dstport+' '+self.user+'@'+self.server+' -p '+self.server_port+' -N -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=10 -o ServerAliveCountMax=3')
             if stop_tunnel == False:
-                print("Tunnel "+self.name+" uscito anticipatamente")
+                print("Tunnel "+self.name+" out early")
             time.sleep(1)
         print("End Tunnel " + self.name)
 
 
 def FireWall(enable):
-    print('Firewall functionality disabled')
+    # Firewall functionality disabled
     return
     # network interfaces
     netlist = []
@@ -193,9 +199,19 @@ def ServerRegistration(cfg_data, appl):
 
 def StartTunnels(data):
     i = 0
+    # check credential
+    if data['params']['ssh_key'] != '':
+        f = open(ssh_key_path, 'w')
+        f.write(data['params']['ssh_key'])
+        f.close()
+        os.chmod(ssh_key_path, S_IRWXU)
+    elif data['params']['password'] == '':
+        print('ssh auth error')
+        return
+        
     for tun in data['tunnels']:
         # Create new thread
-        thread = TunnelThread(i, tun['name'], tun['sport'], tun['dsthost'], tun['dstport'], data['params']['user'], data['params']['password'], data['params']['server'], data['params']['ssh_port'])
+        thread = TunnelThread(i, tun['name'], tun['sport'], tun['dsthost'], tun['dstport'], data['params']['user'], data['params']['password'], data['params']['server'], data['params']['ssh_port'], ssh_key_path)            
         # Start new Thread
         thread.daemon = True
         thread.start()

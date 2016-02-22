@@ -22,6 +22,10 @@ if ($ROOT_APP == '')
 if (file_exists('../configs/configs.php')) {
     include '../configs/configs.php';
 }
+else {
+    echo 'Config file not found: <strong>'.$ROOT_DIR.'app/configs/configs.php</strong>';
+    die();
+}
 
 // session initialization ore rescuse
 if (isset($sessiondir)) {

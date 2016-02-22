@@ -210,7 +210,7 @@ function EsTemplate($tmp = null) {
 }
 
 function EsSanitize($var) {
-    $subt = array('<', '>', '"', "'");
+    $subt = array('<', '>', '"', "'", '?');
     if (is_array($var)) {
         $ret = array();
         foreach($var as $key => $elem) {

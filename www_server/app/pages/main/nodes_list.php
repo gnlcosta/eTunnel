@@ -90,6 +90,13 @@ function VisualStatus(data) {
             $('#con_'+id).popover('hide');
         }
         switch (value['tunnel']) {
+        case -1: // no tunnels available
+            $('#ball_b_'+id).attr('class', 'ball_b ndisab');
+            $('#bon_'+id).hide();
+            $('#boff_'+id).hide();
+            $('#con_'+id).hide();
+            $('#con_'+id).popover('hide');
+            break;
         case 0: // tunnel off
             $('#ball_b_'+id).attr('class', 'ball_b ndisab');
             $('#bon_'+id).hide();

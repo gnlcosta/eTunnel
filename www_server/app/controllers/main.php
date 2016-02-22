@@ -134,7 +134,7 @@ class Main extends AppController {
             $node_id = $_GET['id'];
         else
             $node_id = SesVarGet('node_id');
-        $this->nodes->StartStop($node_id, SesVarGet('user_type'));
+        $this->nodes->StartStop($node_id, $this->utype);
         EsMessage(_("Tunnel in avvio"));
     }
 
@@ -158,7 +158,7 @@ class Main extends AppController {
         }
         EsTemplate('none');
         $id = $_GET['id'];
-        $tunnels = $this->nodes->Tunnels($id, SesVarGet('user_type'));
+        $tunnels = $this->nodes->Tunnels($id, $this->utype);
         ViewVar('tunnels', $tunnels);
     }
 
@@ -168,12 +168,12 @@ class Main extends AppController {
             EsRedir('main', 'nodes_list');
         }
         $id = $_GET['id'];
-        $tunnels = $this->nodes->Tunnels($id, SesVarGet('user_type'));
+        $tunnels = $this->nodes->Tunnels($id, $this->utype);
         SesVarSet('node_id', $id);
         ViewVar('node_id', $id);
         ViewVar('tunnels', $tunnels);
         ViewVar('levels', $this->users->Types());
-        ViewVar('user_type', SesVarGet('user_type'));
+        ViewVar('user_type', $this->utype);
     }
 
     function TunnelAdd() {
@@ -191,7 +191,7 @@ class Main extends AppController {
             }
         }
         ViewVar('node_id', $node_id);
-        ViewVar('levels', $this->users->Types(SesVarGet('user_type')));
+        ViewVar('levels', $this->users->Types($this->utype));
     }
 
     function TunnelEdit() {
@@ -212,10 +212,10 @@ class Main extends AppController {
             EsRedir('main', 'nodes_list');
         $id = $_GET['id'];
         SesVarSet('tun_id', $id);
-        $tunnel = $this->nodes->Tunnel($id, SesVarGet('user_type'));
+        $tunnel = $this->nodes->Tunnel($id, $this->utype);
         ViewVar('node_id', $node_id);
         ViewVar('tunnel', $tunnel);
-        ViewVar('levels', $this->users->Types(SesVarGet('user_type')));
+        ViewVar('levels', $this->users->Types($this->utype));
     }
     
     function TunnelRemove() {
@@ -231,7 +231,7 @@ class Main extends AppController {
     }
     
     function NodesList() {
-        $nodes = $this->nodes->Get(SesVarGet('user_id'), SesVarGet('user_type'));
+        $nodes = $this->nodes->Get(SesVarGet('user_id'), $this->utype);
         foreach ($nodes as &$node) {
             if ($node['lastmsg'] < time()-2*$node['freq'] && $node['tunnelon']) {
                 $node['tunnelon'] = 0;
@@ -243,7 +243,7 @@ class Main extends AppController {
     }
     
     function NodesListUpdate() {
-        $nodes = $this->nodes->Get(SesVarGet('user_id'), SesVarGet('user_type'));
+        $nodes = $this->nodes->Get(SesVarGet('user_id'), $this->utype);
         $data = array();
         foreach ($nodes as $node) {
             if ($node['lastmsg'] < time()-2*$node['freq'] && $node['tunnelon']) {
@@ -255,6 +255,8 @@ class Main extends AppController {
                 $nd['st'] = 0;
             if ((!$node['tunnelon'] && $node['start_utype'] != -1) || ($node['tunnelon'] && $node['start_utype'] == -1))
                 $nd['tunnel'] = 2;
+            if ($this->nodes->TunnelsCount($node['id'], $this->utype) == 0)
+                $nd['tunnel'] = -1;
             $data[] = $nd;
         }
         if ($nodes == FALSE)

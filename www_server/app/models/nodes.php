@@ -119,6 +119,17 @@ class Nodes {
         $this->db->exec('DELETE FROM tunnels WHERE id = '.$id.';');
     }
 
+    function TunnelsCount($node_id, $utype) {
+        $result = $this->db->query('SELECT COUNT(id) as count FROM tunnels WHERE node_id='.$node_id.' AND utype >= '.$utype.';');
+        if ($result !== FALSE) {
+            $cnt = $result->fetchArray();
+            $result->finalize();
+            return $cnt['count'];
+        }
+        
+        return 0;
+    }
+
     function Node($id) {
         $result = $this->db->query('SELECT * FROM nodes WHERE id='.$id.';');
         if ($result !== FALSE) {

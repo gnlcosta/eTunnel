@@ -43,7 +43,7 @@
         </div>
         <div class="form-group">
             <div class="col-sm-12">
-                <a href="<?php echo EsNewUrl('main', 'nodes_list'); ?>" class="btn btn-block btn-warning btn-lg">Annulla</a>
+                <a href="<?php echo EsNewUrl('main', 'nodes_list'); ?>" class="btn btn-block btn-warning btn-lg">Fine</a>
             </div>
         </div>
         <?php endif; ?>

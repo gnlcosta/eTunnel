@@ -61,7 +61,9 @@ class User extends AppController {
                     SesVarSet('user_id', $udata['id']);
                     SesVarSet('user', $udata['user']);
                     SesVarSet('user_type',$udata['type'] );
-                    $this->Log->Append($log_dir.'/user.log', 'Login utente: '.$udata['user']);
+                    $ip = $_SERVER['REMOTE_ADDR'];
+                    $this->Log->Append($log_dir.'/user.log', 'Login user: '.$udata['user'].' ['.$ip.']');
+                    exec('sudo /sbin/iptables --append dynamic -s '.$ip.' -p tcp -j ACCEPT');
                     EsRedir('main');
                 }
                 else if ($udata['password'] == 'random') {
@@ -70,7 +72,9 @@ class User extends AppController {
                         SesVarSet('user_id', $udata['id']);
                         SesVarSet('user', $udata['user']);
                         SesVarSet('user_type',$udata['type'] );
-                        $this->Log->Append($log_dir.'/user.log', 'Login utente: '.$udata['user']);
+                        $ip = $_SERVER['REMOTE_ADDR'];
+                        $this->Log->Append($log_dir.'/user.log', 'Login user: '.$udata['user'].' ['.$ip.']');
+                        exec('sudo /sbin/iptables --append dynamic -s '.$ip.' -p tcp -j ACCEPT');
                         EsRedir('main');
                     }
                 }

@@ -33,6 +33,7 @@ config_dir = '/data/embed/etunnel/'
 #config_dir = '/tmp/'
 cfg_path = config_dir+'/etunnel_cfg.json'
 ssh_key_path = config_dir+'/ssh_key.pem'
+conn_timeout = 7
 
 os.system('mkdir -p '+config_dir)
 os.system('chown -R www-data:www-data '+config_dir)
@@ -149,9 +150,9 @@ def ServerRegistration(cfg_data, appl):
     enckey = ''
     try:
         if cfg_data['scheme'] == 'http':
-            conn = http.client.HTTPConnection(cfg_data['host'], timeout=9)
+            conn = http.client.HTTPConnection(cfg_data['host'], timeout=conn_timeout)
         else:
-            conn = http.client.HTTPSConnection(cfg_data['host'], timeout=9)
+            conn = http.client.HTTPSConnection(cfg_data['host'], timeout=conn_timeout)
         conn.request('GET', cfg_data['path']+'?sn='+sn+'&ck='+ck, headers={'User-Agent': appl['name']+'/'+appl['version']})
         resp = conn.getresponse()
         body = resp.read()
@@ -246,7 +247,8 @@ def MngAction(cmd, cfg_data):
         for t in threads:
             t.join()
         tunnel_state = 'off'
-        os.remove(ssh_key_path)
+        if os.path.isfile(ssh_key_path):
+            os.remove(ssh_key_path)
         print("Tunnels stopped")
         
     elif cmd['action'] == 'register':
@@ -311,9 +313,9 @@ def main():
         try:
             # print('Server CMD')
             if cfg_data['scheme'] == 'http':
-                conn = http.client.HTTPConnection(cfg_data['host'], timeout=9)
+                conn = http.client.HTTPConnection(cfg_data['host'], timeout=conn_timeout)
             else:
-                conn = http.client.HTTPSConnection(cfg_data['host'], timeout=9)
+                conn = http.client.HTTPSConnection(cfg_data['host'], timeout=conn_timeout)
             conn.request('GET', cfg_data['path']+'?idn='+cfg_data['idn']+'&st='+tunnel_state, headers={'User-Agent': appl['name']+'/'+appl['version']})
             resp = conn.getresponse()
             body = resp.read()
@@ -333,13 +335,15 @@ def main():
             if firewall == False:
                 firewall = True
                 FireWall(True)
+            error_cnt = 0;
         except Exception as e:
+            next_call = 1 # force a new connection
             error_cnt += 1
             logging.debug('Connection Error: %s', e)
             if 'resp' in locals():
                 if hasattr(resp, 'status') and hasattr(resp, 'reason'):
                     logging.debug(' Con: %s %s', resp.status, resp.reason)
-            print(Exception('Connection Error: %s' % e))
+            print(Exception('Connection Error [%d]: %s' % (error_cnt, e)))
         finally:
             conn.close()
             

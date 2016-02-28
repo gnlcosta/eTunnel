@@ -1,4 +1,61 @@
 <?php
+// language change
+if (isset($_GET['lang'])) {
+    $lan = 'en_US';
+	switch ($_GET['lang']) {
+	case 'ita':
+        $lan = 'it_IT';
+		break;
+        
+	case 'bra':
+        $lan = 'pt_BR';
+		break;
+	}
+    
+	SesVarSet('locale', $lan);
+    EsRedir('user', 'login');
+}
+else if (!SesVarCheck('locale')) {
+    $langs = array();
+    $lan = 'en_US';
+
+    if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+        // break up string into pieces (languages and q factors)
+        preg_match_all('/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0\.[0-9]+))?/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $lang_parse);
+    
+        if (count($lang_parse[1])) {
+            // create a list like "en" => 0.8
+            $langs = array_combine($lang_parse[1], $lang_parse[4]);
+            
+            // set default to 1 for any without q factor
+            foreach ($langs as $lang => $val) {
+                if ($val === '') $langs[$lang] = 1;
+            }
+    
+            // sort list based on value	
+            arsort($langs, SORT_NUMERIC);
+        }
+    }
+    
+    // look through sorted list and use first one that matches our languages
+    foreach ($langs as $lang => $val) {
+        $lang = strtolower($lang);
+        if (strpos($lang, 'it') === 0) {
+            // italiano
+            $lan = 'it_IT';
+        }
+        else if (strpos($lang, 'en') === 0) {
+            // inglese
+            $lan = 'en_US';
+        }
+        else if (strpos($lang, 'pt') === 0) { // sudo apt-get install language-pack-pt
+            // italiano
+            $lan = 'pt_BR';
+        }
+    }
+    SesVarSet('locale', $lan);
+    EsRedir('user', 'login');
+}
 
 // Title
 $title_page = 'eTunnel';
@@ -87,8 +144,9 @@ class User extends AppController {
     
     function Logout() {
         global $log_dir;
-        $this->Log->Append($log_dir.'/user.log', 'Logout utente: '.SesVarGet('user'));
-
+        if (SesVarCheck('user') && SesVarGet('user') != 'local') {
+            $this->Log->Append($log_dir.'/user.log', _('Logout Utente').': '.SesVarGet('user'));
+        }
         session_unset();
         session_destroy();
         session_start();
@@ -193,7 +251,7 @@ class User extends AppController {
         }
         else
             $id = $_GET['id'];
-        TemplVar('title', 'Modifica Utente');
+        TemplVar('title', _('Modifica Utente'));
         $udata = $this->users->SearchByID($id);
         $usr_id = SesVarGet('user_id');
         if ($udata !== FALSE && ($udata['type'] > $this->usr_type || $udata['id'] == $usr_id || $this->users->FullAccess($usr_id))) {
@@ -207,7 +265,7 @@ class User extends AppController {
     }
     
     function Index() {
-        TemplVar('title', 'Lista Utenti');
+        TemplVar('title', _('Lista Utenti'));
         if ($this->usr_type != 3)
             $list = $this->users->View($this->usr_type);
         else

@@ -70,16 +70,15 @@ if (SesVarCheck('locale')) {
 	$locale = SesVarGet('locale');
 }
 else {
-    $locale = 'it_IT.utf-8';
+    $locale = 'en_US';
 }
-setlocale(LC_ALL, $locale);
-putenv('LC_ALL='.$locale);
-putenv('LANG='.$locale); 
-putenv('LANGUAGE='.$locale);
+putenv('LANG='.$locale.'.UTF-8'); 
+putenv('LANGUAGE='.$locale.'.UTF-8');
+bind_textdomain_codeset('default', 'UTF-8');
 
 // Specify location of translation tables
 bindtextdomain('default', dirname(__FILE__).'/../locale');
-bind_textdomain_codeset('default', 'UTF-8');
+setlocale(LC_ALL, $locale.'.UTF-8');
 // Choose domain
 textdomain('default');
 

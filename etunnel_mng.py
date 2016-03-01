@@ -25,7 +25,6 @@ import json
 import http.client
 import hashlib
 from stat import *
-from uuid import getnode as get_mac
 import logging
 
 tmp_dir = '/tmp/'
@@ -69,6 +68,34 @@ class TunnelThread (threading.Thread):
                 print("Tunnel "+self.name+" out early")
             time.sleep(1)
         print("End Tunnel " + self.name)
+
+
+def NetworkDevName():
+    eth = 'none'
+    # network interfaces
+    nlist = []
+    try:
+        for (dirpath, dirnames, filenames) in os.walk('/sys/class/net/'):
+            for dirp in dirnames:
+                #if os.path.isfile('/sys/class/net/'+dirp+'/')
+                if os.path.isdir('/sys/class/net/'+dirp+'/device'):
+                    if not os.path.isdir('/sys/class/net/'+dirp+'/wireless'):
+                        if 'usb' not in dirp and 'can' not in dirp:
+                            nlist.append(dirp)
+                            if eth == 'none':
+                                eth = dirp
+    except Exception as e:
+        print(Exception('Error: %s' % e))
+        return -1
+    return eth
+    
+    
+def HwAddr(ifname):
+    content = ''
+    with open('/sys/class/net/'+ifname+'/address') as f:
+        content = f.readlines()[0]
+    content = content.rstrip().upper().replace(':', '')
+    return content
 
 
 def FireWall(enable):
@@ -120,9 +147,7 @@ def FireWall(enable):
 
 
 def SerialNumber():
-    macbin = get_mac()
-    sn = ''.join('%02X' % ((macbin >> 8*i) & 0xff) for i in reversed(range(6)))
-    return sn
+    return HwAddr(NetworkDevName())
 
 
 def SerialNumberSave(cfg_data):

@@ -111,7 +111,7 @@ def FireWall(enable):
                 if os.path.isdir('/sys/class/net/'+dirp+'/device'):
                     if os.path.isdir('/sys/class/net/'+dirp+'/wireless'):
                         netlist.append(dirp)
-                    elif 'usb' not in dirp:
+                    elif 'usb' not in dirp and 'can' not in dirp:
                         netlist.append(dirp)
     except:
         return

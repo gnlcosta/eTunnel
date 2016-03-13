@@ -65,10 +65,10 @@ class Nodes {
 
     function Get($user_id, $utype) {
         if ($utype < 3) {
-            $result = $this->db->query('SELECT * FROM nodes ORDER BY name ASC;');
+            $result = $this->db->query('SELECT nodes.* FROM nodes ORDER BY name ASC;');
         }
         else {
-            $result = $this->db->query('SELECT * FROM nodes, node_users WHERE nodes.id == node_users.node_id AND node_users.user_id == '.$user_id.' ORDER BY name ASC;');
+            $result = $this->db->query('SELECT nodes.* FROM nodes, node_users WHERE nodes.id == node_users.node_id AND node_users.user_id == '.$user_id.' ORDER BY name ASC;');
         }
         if ($result !== FALSE) {
             $resp = array();

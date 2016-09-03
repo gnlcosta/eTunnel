@@ -10,10 +10,17 @@ class Log {
         }
     }
 
-    function Read($file) {
+    function Read($file, $pattern=null) {
         if (!file_exists($file))
             return array();
-        $logs = file($file);
+        if ($pattern != null) {
+            $pattern = preg_quote($pattern, '/');
+            $pattern = "/^.*$pattern.*\$/m";
+            $logs = preg_grep($pattern, file($file));
+        }
+        else {
+            $logs = file($file);
+        }
         $logs = array_reverse($logs);
         return $logs;
     }

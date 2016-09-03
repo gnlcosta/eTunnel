@@ -86,8 +86,9 @@ class User extends AppController {
             }
         }
         else {
-            TemplVar('user', SesVarGet('user'));
+            $this->usr_name = SesVarGet('user');
             $this->usr_type = SesVarGet('user_type');
+            TemplVar('user', $this->usr_name);
         }
         $str = file_get_contents(RootDir().'/../data/app.json');
         $appl = json_decode($str, true);
@@ -281,7 +282,12 @@ class User extends AppController {
     function Log() {
         global $log_dir;
         TemplVar('title', _('Log Utenti'));
-        $logs = $this->Log->Read($log_dir.'/user.log');
+        if ($this->usr_type > 1) {
+            $logs = $this->Log->Read($log_dir.'/user.log', $this->usr_name);
+        }
+        else {
+            $logs = $this->Log->Read($log_dir.'/user.log');
+        }
         ViewVar('logs', $logs);
     }
     

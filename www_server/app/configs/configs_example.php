@@ -10,6 +10,9 @@ $session_lifetime = 28800; //in secconds
 // default controller
 $default_controller = 'main';
 
+// permanent users (number)
+$permanent_user_num = 1;
+
 $prj_name = 'eTunnel';
 // $app_dir = '/tmp/';
 $log_dir = '/tmp/'.$es_session.'/log';

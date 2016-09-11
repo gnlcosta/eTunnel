@@ -17,11 +17,11 @@
                         <?php if ($user['type'] > $user_tp || $user['id'] == $user_id || $user_id < 3): ?>
                         <a href="<?php echo EsNewUrl('user', 'change_password').'?id='.$user['id']; ?>" type="button" class="btn btn-default"><span class="fa fa-key" aria-hidden="true"></span></a>
                         <a href="<?php echo EsNewUrl('user', 'edit').'?id='.$user['id']; ?>" type="button" class="btn btn-default"><span class="fa fa-cog" aria-hidden="true"></span></a>
-                        <?php if ($contr->users->Permanent($user['id']) == FALSE) : ?>
-                        <a href="<?php echo EsNewUrl('main', 'user_delete').'?id='.$user['id']; ?>" type="button" class="btn btn-default"><span class="fa fa-trash" aria-hidden="true"></span></a>
-                        <?php endif; ?>
                         <?php if ($user['type'] == 3): ?>
                         <a href="<?php echo EsNewUrl('main', 'user_nodes').'?id='.$user['id']; ?>" type="button" class="btn btn-default"><span class="fa fa-sitemap" aria-hidden="true"></span></a>
+                        <?php endif; ?>
+                        <?php if ($contr->users->Permanent($user['id']) == FALSE) : ?>
+                        <a href="<?php echo EsNewUrl('main', 'user_delete').'?id='.$user['id']; ?>" type="button" class="btn btn-danger"><span class="fa fa-trash" aria-hidden="true"></span></a>
                         <?php endif; ?>
                         <?php endif; ?>
                     </td>

@@ -97,7 +97,8 @@ class Users {
     }
     
     function Permanent($id) {
-        if ($id > 5)
+        global $permanent_user_num;
+        if ($id > $permanent_user_num)
             return FALSE;
         return TRUE;
     }
